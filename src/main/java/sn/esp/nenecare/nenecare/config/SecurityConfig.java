@@ -32,11 +32,13 @@ public class SecurityConfig {
 
             // Règles d'accès
             .authorizeHttpRequests(auth -> auth
-                // Page de login accessible à tous
-                .requestMatchers("/api/auth/**").permitAll()
-                // Tout le reste nécessite une authentification
-                .anyRequest().authenticated()
-            );
+    // Page de login accessible à tous
+            .requestMatchers("/api/auth/**").permitAll()
+    // Audit test accessible sans auth pour démonstration
+            .requestMatchers("/api/audit/**").permitAll()
+    // Tout le reste nécessite une authentification
+            .anyRequest().authenticated()
+);
 
         return http.build();
     }
