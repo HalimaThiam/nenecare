@@ -39,9 +39,10 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @RequestHeader(value = "Authorization", required = false) String authHeader) {
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            HttpServletRequest http) {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            authService.logout(authHeader.substring(7));
+            authService.logout(authHeader.substring(7), http.getRemoteAddr());
         }
         return ResponseEntity.ok(ApiResponse.ok("Deconnexion reussie", null));
     }

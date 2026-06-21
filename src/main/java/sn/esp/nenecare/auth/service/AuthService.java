@@ -8,6 +8,7 @@ import sn.esp.nenecare.audit.service.AuditService;
 import sn.esp.nenecare.auth.dto.LoginRequest;
 import sn.esp.nenecare.auth.dto.LoginResponse;
 import sn.esp.nenecare.auth.jwt.JwtService;
+import sn.esp.nenecare.auth.jwt.TokenBlacklistService;
 import sn.esp.nenecare.user.model.User;
 import sn.esp.nenecare.user.repository.UserRepository;
 
@@ -26,6 +27,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final LoginAttemptService loginAttemptService;
+    private final TokenBlacklistService tokenBlacklistService;
     private final AuditService auditService;
 
     /**
@@ -70,7 +72,18 @@ public class AuthService {
                 user.getRole().name(), jwtService.getExpirationMs());
     }
 
-    public void logout(String token) {
-        // TODO US-03 : ajouter le jeton a une liste de revocation.
+    /**
+     * Revoque le jeton (deconnexion explicite, US-03) et trace l'action.
+     */
+    public void logout(String token, String adresseIp) {
+        String username = "INCONNU";
+        String role = "INCONNU";
+        if (jwtService.estValide(token)) {
+            username = jwtService.extraireUsername(token);
+            role = jwtService.extraireRole(token);
+        }
+        tokenBlacklistService.revoquer(token);
+        auditService.logAction(username, role, "LOGOUT", null,
+                "Deconnexion explicite", adresseIp, true);
     }
 }
