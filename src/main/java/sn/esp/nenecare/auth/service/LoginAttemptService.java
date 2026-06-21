@@ -8,21 +8,22 @@ import org.springframework.stereotype.Service;
 /**
  * Compte les tentatives de connexion echouees et bloque apres 5 echecs (US-04).
  *
- * Proprietaire : Elimane (auth). Squelette en memoire - a completer
- * (persistance / fenetre temporelle / notification administrateur).
+ * Proprietaire : Elimane (auth). Stockage en memoire (suffisant pour un serveur
+ * mono-instance ; a externaliser si l'app est repliquee).
  */
 @Service
 public class LoginAttemptService {
 
-    private static final int MAX_TENTATIVES = 5;
+    public static final int MAX_TENTATIVES = 5;
 
     private final ConcurrentHashMap<String, AtomicInteger> tentatives = new ConcurrentHashMap<>();
 
-    public void echecConnexion(String username) {
-        tentatives.computeIfAbsent(username, k -> new AtomicInteger(0)).incrementAndGet();
-        // TODO US-04 : si le seuil est atteint, generer une entree d'audit et notifier l'admin.
+    /** Incremente le compteur d'echecs et renvoie le nouveau total. */
+    public int echecConnexion(String username) {
+        return tentatives.computeIfAbsent(username, k -> new AtomicInteger(0)).incrementAndGet();
     }
 
+    /** Remet le compteur a zero (connexion reussie). */
     public void reinitialiser(String username) {
         tentatives.remove(username);
     }

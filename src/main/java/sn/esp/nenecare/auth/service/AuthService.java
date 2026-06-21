@@ -48,7 +48,15 @@ public class AuthService {
                 && passwordEncoder.matches(requete.getMotDePasse(), user.getMotDePasse());
 
         if (!motDePasseOk) {
-            loginAttemptService.echecConnexion(username);
+            int nbEchecs = loginAttemptService.echecConnexion(username);
+            auditService.logAction(username, "INCONNU", "LOGIN_FAILED", null,
+                    "Echec de connexion (" + nbEchecs + "/" + LoginAttemptService.MAX_TENTATIVES + ")",
+                    adresseIp, false);
+            if (nbEchecs >= LoginAttemptService.MAX_TENTATIVES) {
+                auditService.logAction(username, "INCONNU", "COMPTE_BLOQUE", null,
+                        "Compte bloque apres " + nbEchecs + " tentatives echouees",
+                        adresseIp, false);
+            }
             throw new IllegalArgumentException("Identifiant ou mot de passe incorrect.");
         }
 
