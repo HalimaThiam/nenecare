@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeneCare - Accueil</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="barre">
+        <h1>NeneCare</h1>
+        <button id="btnDeconnexion">Se deconnecter</button>
+    </header>
+
+    <main class="contenu">
+        <h2>Tableau de bord</h2>
+        <p>Bienvenue dans NeneCare - Clinique Marose de Ouakam.</p>
+        <p class="info">
+            Page d'accueil de base. Les ecrans par role (dossiers, audit, comptes)
+            sont a developper par Hadja.
+        </p>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        document.getElementById('btnDeconnexion').addEventListener('click', async () => {
+            await NeneCareApi.logout();
+            window.location.href = '/login.html';
+        });
+    </script>
+</body>
+</html>

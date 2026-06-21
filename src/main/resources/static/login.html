@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeneCare - Connexion</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <main class="carte-connexion">
+        <h1>NeneCare</h1>
+        <p class="sous-titre">Clinique Marose de Ouakam</p>
+
+        <form id="formConnexion">
+            <label for="username">Identifiant</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+
+            <label for="motDePasse">Mot de passe</label>
+            <input type="password" id="motDePasse" name="motDePasse" required autocomplete="current-password">
+
+            <button type="submit">Se connecter</button>
+        </form>
+
+        <p id="message" class="message" role="alert"></p>
+    </main>
+
+    <script src="/js/api.js"></script>
+    <script>
+        // Squelette frontend - a completer par Hadja.
+        document.getElementById('formConnexion').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = document.getElementById('message');
+            message.textContent = '';
+            try {
+                const reponse = await NeneCareApi.login(
+                    document.getElementById('username').value,
+                    document.getElementById('motDePasse').value
+                );
+                NeneCareApi.setToken(reponse.donnees.token);
+                window.location.href = '/index.html';
+            } catch (err) {
+                message.textContent = err.message || 'Echec de la connexion.';
+            }
+        });
+    </script>
+</body>
+</html>

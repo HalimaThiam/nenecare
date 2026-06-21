@@ -1,0 +1,13 @@
+# Modele de configuration locale.
+# Copier ce fichier en "application-local.properties" (ignore par git) et adapter,
+# puis lancer avec : ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+#
+# OU plus simple : definir ces variables d'environnement avant de lancer l'app.
+
+# Base de donnees locale
+DB_URL=jdbc:postgresql://localhost:5432/nenecare
+DB_USERNAME=postgres
+DB_PASSWORD=changez-moi
+
+# Secret JWT (au moins 32 caracteres)
+JWT_SECRET=mon-secret-jwt-local-de-32-caracteres-minimum
