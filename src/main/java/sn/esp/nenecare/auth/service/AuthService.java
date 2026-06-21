@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import sn.esp.nenecare.audit.service.AuditService;
 import sn.esp.nenecare.auth.dto.LoginRequest;
 import sn.esp.nenecare.auth.dto.LoginResponse;
 import sn.esp.nenecare.auth.jwt.JwtService;
@@ -13,9 +14,9 @@ import sn.esp.nenecare.user.repository.UserRepository;
 /**
  * Logique d'authentification (US-01, US-03, US-04).
  *
- * Proprietaire : Elimane (auth). Squelette de demarrage : la verification
- * bcrypt et la generation du jeton sont cablees ; reste a brancher l'audit,
- * la revocation (logout) et le blocage effectif.
+ * Proprietaire : Elimane (auth).
+ * Reutilise : PasswordEncoder bcrypt (SecurityConfig), JwtService (30 min),
+ * AuditService (tracabilite des connexions).
  */
 @Service
 @RequiredArgsConstructor
@@ -25,14 +26,21 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final LoginAttemptService loginAttemptService;
+    private final AuditService auditService;
 
-    public LoginResponse login(LoginRequest requete) {
-        if (loginAttemptService.estBloque(requete.getUsername())) {
+    /**
+     * Authentifie un utilisateur et renvoie un JWT (US-01).
+     * @param adresseIp adresse IP de l'appelant, pour la tracabilite d'audit.
+     */
+    public LoginResponse login(LoginRequest requete, String adresseIp) {
+        String username = requete.getUsername();
+
+        if (loginAttemptService.estBloque(username)) {
             throw new IllegalArgumentException(
                 "Compte temporairement bloque suite a trop de tentatives echouees.");
         }
 
-        User user = userRepository.findByUsername(requete.getUsername())
+        User user = userRepository.findByUsername(username)
                 .filter(User::isActif)
                 .orElse(null);
 
@@ -40,19 +48,21 @@ public class AuthService {
                 && passwordEncoder.matches(requete.getMotDePasse(), user.getMotDePasse());
 
         if (!motDePasseOk) {
-            loginAttemptService.echecConnexion(requete.getUsername());
-            // TODO : enregistrer l'echec dans l'audit (succes=false).
+            loginAttemptService.echecConnexion(username);
             throw new IllegalArgumentException("Identifiant ou mot de passe incorrect.");
         }
 
-        loginAttemptService.reinitialiser(requete.getUsername());
+        loginAttemptService.reinitialiser(username);
         String token = jwtService.genererToken(user.getUsername(), user.getRole().name());
-        // TODO : enregistrer la connexion reussie dans l'audit.
+
+        auditService.logAction(user.getUsername(), user.getRole().name(),
+                "LOGIN", null, "Connexion reussie", adresseIp, true);
+
         return new LoginResponse(token, user.getUsername(),
                 user.getRole().name(), jwtService.getExpirationMs());
     }
 
     public void logout(String token) {
-        // TODO US-03 : ajouter le jeton (ou son jti) a une liste de revocation.
+        // TODO US-03 : ajouter le jeton a une liste de revocation.
     }
 }

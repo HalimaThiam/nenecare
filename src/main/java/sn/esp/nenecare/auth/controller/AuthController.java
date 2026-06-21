@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import sn.esp.nenecare.auth.dto.LoginRequest;
@@ -29,8 +30,10 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest requete) {
-        LoginResponse reponse = authService.login(requete);
+    public ResponseEntity<ApiResponse<LoginResponse>> login(
+            @Valid @RequestBody LoginRequest requete,
+            HttpServletRequest http) {
+        LoginResponse reponse = authService.login(requete, http.getRemoteAddr());
         return ResponseEntity.ok(ApiResponse.ok("Connexion reussie", reponse));
     }
 
