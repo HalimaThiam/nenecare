@@ -2,18 +2,26 @@ package sn.esp.nenecare.nenecare.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
+import sn.esp.nenecare.nenecare.security.JwtFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
-    // Encoder bcrypt avec coût 12 (recommandé pour données médicales)
+    private final JwtFilter jwtFilter;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -22,23 +30,17 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Désactive CSRF pour API REST (JWT gère la sécurité)
             .csrf(csrf -> csrf.disable())
-
-            // Stateless : pas de session serveur, JWT uniquement
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
-            // Règles d'accès
             .authorizeHttpRequests(auth -> auth
-    // Page de login accessible à tous
-            .requestMatchers("/api/auth/**").permitAll()
-    // Audit test accessible sans auth pour démonstration
-            .requestMatchers("/api/audit/**").permitAll()
-    // Tout le reste nécessite une authentification
-            .anyRequest().authenticated()
-);
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/audit/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtFilter,
+                UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
