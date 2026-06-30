@@ -1,0 +1,41 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/nenecare}
+    username: ${DB_USERNAME:nenecare}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # Remplacer par 'validate' en production (avec Flyway)
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+    show-sql: false
+    open-in-view: false
+
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-stacktrace: never
+    include-message: never
+
+nenecare:
+  encryption:
+    # Clé AES-256 encodée en Base64 (32 octets).
+    # Générer avec : openssl rand -base64 32
+    key: ${NENECARE_ENCRYPTION_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
