@@ -43,7 +43,7 @@ public class AesGcmEncryptor {
         } catch (IllegalArgumentException e) {
             throw new IllegalStateException(
                 "[NeneCare] NENECARE_ENCRYPTION_KEY n'est pas un Base64 valide. " +
-                "Générer avec : openssl rand -base64 32", e
+                "Générer avec : openssl rand -base64 32"
             );
         }
         if (keyBytes.length != 32) {

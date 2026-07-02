@@ -1,7 +1,6 @@
 package sn.esp.nenecare.dossier.controller;
 
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +15,13 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/dossiers")
-@RequiredArgsConstructor
 public class DossierMedicalController {
 
     private final DossierMedicalService service;
+
+    public DossierMedicalController(DossierMedicalService service) {
+        this.service = service;
+    }
 
     // ── Lecture ───────────────────────────────────────────────────────────────
 

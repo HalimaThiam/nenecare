@@ -1,7 +1,6 @@
 package sn.esp.nenecare.dossier.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,12 +19,17 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
-@RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class DossierMedicalService {
 
     private final DossierMedicalRepository dossierRepository;
     private final PatientRepository patientRepository;
+
+    public DossierMedicalService(DossierMedicalRepository dossierRepository,
+                                  PatientRepository patientRepository) {
+        this.dossierRepository = dossierRepository;
+        this.patientRepository = patientRepository;
+    }
 
     public DossierMedicalResponse findById(UUID id) {
         DossierMedical dossier = dossierRepository.findById(id)

@@ -1,9 +1,6 @@
 package sn.esp.nenecare.dossier.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import sn.esp.nenecare.audit.DossierAuditListener;
@@ -16,7 +13,6 @@ import java.util.UUID;
 @Entity
 @Table(name = "dossiers_medicaux")
 @EntityListeners(DossierAuditListener.class)
-@Getter @Setter @NoArgsConstructor
 public class DossierMedical {
 
     @Id
@@ -75,4 +71,42 @@ public class DossierMedical {
     // Verrou optimiste — prévient les écrasements concurrents de dossiers
     @Version
     private Long version;
+
+    public DossierMedical() {}
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public Patient getPatient() { return patient; }
+    public void setPatient(Patient patient) { this.patient = patient; }
+
+    public String getAntecedentsMedicaux() { return antecedentsMedicaux; }
+    public void setAntecedentsMedicaux(String v) { this.antecedentsMedicaux = v; }
+
+    public String getDiagnostics() { return diagnostics; }
+    public void setDiagnostics(String v) { this.diagnostics = v; }
+
+    public String getTraitements() { return traitements; }
+    public void setTraitements(String v) { this.traitements = v; }
+
+    public String getAllergies() { return allergies; }
+    public void setAllergies(String v) { this.allergies = v; }
+
+    public String getNotesConfidentielles() { return notesConfidentielles; }
+    public void setNotesConfidentielles(String v) { this.notesConfidentielles = v; }
+
+    public String getGroupeSanguin() { return groupeSanguin; }
+    public void setGroupeSanguin(String v) { this.groupeSanguin = v; }
+
+    public LocalDateTime getDateCreation() { return dateCreation; }
+    public LocalDateTime getDateMiseAJour() { return dateMiseAJour; }
+
+    public String getCreePar() { return creePar; }
+    public void setCreePar(String v) { this.creePar = v; }
+
+    public String getModifiePar() { return modifiePar; }
+    public void setModifiePar(String v) { this.modifiePar = v; }
+
+    public Long getVersion() { return version; }
+    public void setVersion(Long version) { this.version = version; }
 }

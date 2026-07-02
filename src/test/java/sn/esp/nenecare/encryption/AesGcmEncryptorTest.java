@@ -67,7 +67,9 @@ class AesGcmEncryptorTest {
         byte[] combined2 = Base64.getDecoder().decode(encryptor.encrypt(texte));
 
         // Les 12 premiers octets sont l'IV
-        assertThat(combined1).doesNotStartWith(java.util.Arrays.copyOfRange(combined2, 0, 12));
+        byte[] iv1 = java.util.Arrays.copyOfRange(combined1, 0, 12);
+        byte[] iv2 = java.util.Arrays.copyOfRange(combined2, 0, 12);
+        assertThat(iv1).isNotEqualTo(iv2);
     }
 
     // ── 3. Intégrité GCM — toute altération doit être détectée ───────────────

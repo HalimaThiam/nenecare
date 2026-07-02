@@ -1,9 +1,6 @@
 package sn.esp.nenecare.patient.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import sn.esp.nenecare.encryption.EncryptedStringConverter;
 
@@ -13,7 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "patients")
-@Getter @Setter @NoArgsConstructor
 public class Patient {
 
     @Id
@@ -51,4 +47,32 @@ public class Patient {
     @CreationTimestamp
     @Column(name = "date_creation", updatable = false)
     private LocalDateTime dateCreation;
+
+    public Patient() {}
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public String getNumeroDossier() { return numeroDossier; }
+    public void setNumeroDossier(String v) { this.numeroDossier = v; }
+
+    public String getNom() { return nom; }
+    public void setNom(String v) { this.nom = v; }
+
+    public String getPrenom() { return prenom; }
+    public void setPrenom(String v) { this.prenom = v; }
+
+    public LocalDate getDateNaissance() { return dateNaissance; }
+    public void setDateNaissance(LocalDate v) { this.dateNaissance = v; }
+
+    public String getSexe() { return sexe; }
+    public void setSexe(String v) { this.sexe = v; }
+
+    public String getTelephone() { return telephone; }
+    public void setTelephone(String v) { this.telephone = v; }
+
+    public String getAdresse() { return adresse; }
+    public void setAdresse(String v) { this.adresse = v; }
+
+    public LocalDateTime getDateCreation() { return dateCreation; }
 }
