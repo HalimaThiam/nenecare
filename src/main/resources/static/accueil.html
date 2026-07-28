@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeneCare – Accueil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-deep:   #0d5c63;
+      --teal-mid:    #1a8a8a;
+      --teal-light:  #2ec4b6;
+      --teal-pale:   #e6f7f7;
+      --cream:       #f7f4ef;
+      --white:       #ffffff;
+      --slate:       #374151;
+      --slate-light: #6b7280;
+      --slate-pale:  #f3f4f6;
+      --amber:       #d97706;
+      --amber-pale:  #fffbeb;
+      --red:         #dc2626;
+      --red-pale:    #fef2f2;
+      --green:       #059669;
+      --green-pale:  #ecfdf5;
+      --border:      #e5e7eb;
+      --shadow-sm:   0 1px 3px rgba(0,0,0,.08);
+      --shadow-md:   0 4px 16px rgba(13,92,99,.10);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background: var(--cream);
+      color: var(--slate);
+    }
+
+    /* ── Layout sidebar + main ─────────────────────────────────── */
+    .app { display: flex; min-height: 100vh; }
+
+    /* ── Sidebar ───────────────────────────────────────────────── */
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--teal-deep);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1rem;
+    }
+
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .5rem .75rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,.12);
+      margin-bottom: 1.25rem;
+    }
+    .sidebar-logo-icon {
+      width: 36px; height: 36px;
+      background: rgba(255,255,255,.15);
+      border-radius: 8px;
+      display: grid; place-items: center;
+    }
+    .sidebar-logo-icon svg { width: 18px; height: 18px; }
+    .sidebar-logo-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.25rem;
+      color: var(--white);
+    }
+
+    /* Navigation */
+    .nav-section-label {
+      font-size: .65rem;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+      padding: 0 .75rem;
+      margin-bottom: .5rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .6rem .75rem;
+      border-radius: 8px;
+      font-size: .875rem;
+      font-weight: 500;
+      color: rgba(255,255,255,.7);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all .15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: rgba(255,255,255,.08); color: var(--white); }
+    .nav-item.active {
+      background: rgba(46,196,182,.2);
+      color: var(--teal-light);
+    }
+    .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
+
+    .nav-spacer { flex: 1; }
+
+    /* Profil utilisateur sidebar */
+    .sidebar-user {
+      border-top: 1px solid rgba(255,255,255,.12);
+      padding-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+    }
+    .user-avatar {
+      width: 36px; height: 36px;
+      background: var(--teal-light);
+      border-radius: 50%;
+      display: grid; place-items: center;
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--teal-deep);
+      flex-shrink: 0;
+    }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-role {
+      font-size: .7rem;
+      color: rgba(255,255,255,.5);
+    }
+    .logout-btn {
+      background: none; border: none; cursor: pointer;
+      color: rgba(255,255,255,.4);
+      display: flex; align-items: center;
+      transition: color .15s;
+    }
+    .logout-btn:hover { color: var(--white); }
+    .logout-btn svg { width: 16px; height: 16px; }
+
+    /* ── Main ──────────────────────────────────────────────────── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem 2.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* Header */
+    .main-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .main-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      color: var(--slate);
+    }
+    .main-header p {
+      font-size: .875rem;
+      color: var(--slate-light);
+      margin-top: .2rem;
+    }
+
+    .header-actions { display: flex; gap: .75rem; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      padding: .6rem 1.1rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .15s;
+    }
+    .btn svg { width: 15px; height: 15px; }
+    .btn-primary { background: var(--teal-deep); color: var(--white); }
+    .btn-primary:hover { background: var(--teal-mid); }
+    .btn-outline {
+      background: var(--white);
+      color: var(--slate);
+      border: 1.5px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--teal-mid); color: var(--teal-deep); }
+
+    /* ── KPI Cards ─────────────────────────────────────────────── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+
+    .kpi-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+    .kpi-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .kpi-label {
+      font-size: .78rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      color: var(--slate-light);
+    }
+    .kpi-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: grid; place-items: center;
+    }
+    .kpi-icon svg { width: 18px; height: 18px; }
+    .kpi-icon.teal   { background: var(--teal-pale);  color: var(--teal-deep); }
+    .kpi-icon.amber  { background: var(--amber-pale); color: var(--amber); }
+    .kpi-icon.red    { background: var(--red-pale);   color: var(--red); }
+    .kpi-icon.green  { background: var(--green-pale); color: var(--green); }
+
+    .kpi-value {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--slate);
+      line-height: 1;
+    }
+    .kpi-sub {
+      font-size: .75rem;
+      color: var(--slate-light);
+    }
+    .kpi-trend {
+      display: inline-flex;
+      align-items: center;
+      gap: .2rem;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: .15rem .45rem;
+      border-radius: 100px;
+    }
+    .kpi-trend.up   { background: var(--green-pale); color: var(--green); }
+    .kpi-trend.warn { background: var(--amber-pale); color: var(--amber); }
+    .kpi-trend.down { background: var(--red-pale);   color: var(--red); }
+
+    /* ── Grid 2 colonnes ────────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    /* ── Card générique ────────────────────────────────────────── */
+    .card {
+      background: var(--white);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-title {
+      font-size: .9rem;
+      font-weight: 600;
+      color: var(--slate);
+    }
+    .card-action {
+      font-size: .78rem;
+      color: var(--teal-mid);
+      cursor: pointer;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .card-action:hover { text-decoration: underline; }
+    .card-body { padding: 1.25rem; }
+
+    /* ── Table des dossiers récents ─────────────────────────────── */
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--slate-light);
+      padding: .6rem 1rem;
+      background: var(--slate-pale);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: .85rem 1rem;
+      font-size: .85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--slate);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--slate-pale); }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      font-size: .72rem;
+      font-weight: 600;
+      padding: .2rem .6rem;
+      border-radius: 100px;
+    }
+    .badge-status::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+    }
+    .badge-status.active  { background: var(--green-pale);  color: var(--green);  }
+    .badge-status.active::before  { background: var(--green); }
+    .badge-status.pending { background: var(--amber-pale);  color: var(--amber);  }
+    .badge-status.pending::before { background: var(--amber); }
+    .badge-status.closed  { background: var(--slate-pale);  color: var(--slate-light); }
+    .badge-status.closed::before  { background: var(--slate-light); }
+
+    .action-link {
+      color: var(--teal-mid);
+      font-size: .8rem;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .action-link:hover { text-decoration: underline; }
+
+    /* ── Journal d'audit (sidebar droite) ──────────────────────── */
+    .audit-list { display: flex; flex-direction: column; }
+    .audit-item {
+      display: flex;
+      gap: .75rem;
+      padding: .85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .audit-item:last-child { border-bottom: none; }
+    .audit-dot {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+      margin-top: .1rem;
+    }
+    .audit-dot svg { width: 13px; height: 13px; }
+    .audit-dot.read    { background: var(--teal-pale);  color: var(--teal-deep); }
+    .audit-dot.write   { background: var(--green-pale); color: var(--green); }
+    .audit-dot.login   { background: var(--amber-pale); color: var(--amber); }
+    .audit-dot.warn    { background: var(--red-pale);   color: var(--red); }
+
+    .audit-meta { flex: 1; min-width: 0; }
+    .audit-action {
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--slate);
+    }
+    .audit-detail {
+      font-size: .76rem;
+      color: var(--slate-light);
+      margin-top: .1rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .audit-time {
+      font-size: .7rem;
+      color: var(--slate-light);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── Alerte sécurité ───────────────────────────────────────── */
+    .security-alert {
+      background: var(--red-pale);
+      border: 1px solid #fca5a5;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+    }
+    .security-alert svg { width: 18px; height: 18px; color: var(--red); flex-shrink: 0; margin-top: .1rem; }
+    .security-alert-title { font-size: .85rem; font-weight: 600; color: var(--red); }
+    .security-alert-desc  { font-size: .78rem; color: #991b1b; margin-top: .15rem; }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .two-col  { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .sidebar  { display: none; }
+      .main     { padding: 1.25rem; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ Sidebar ══════════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+        </svg>
+      </div>
+      <span class="sidebar-logo-name">NeneCare</span>
+    </div>
+
+    <div class="nav-section-label">Navigation</div>
+
+    <a class="nav-item active" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Tableau de bord
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Patientes
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Dossiers médicaux
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Dossiers néonatals
+    </a>
+
+    <div class="nav-section-label" style="margin-top:1.25rem;">Administration</div>
+
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Journal d'audit
+    </a>
+    <a class="nav-item" href="#">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      Gestion des accès
+    </a>
+
+    <div class="nav-spacer"></div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar" id="avatarInitials">HD</div>
+      <div class="user-info">
+        <div class="user-name" id="userName">Dr Hadja Diallo</div>
+        <div class="user-role" id="userRole">SAGE_FEMME</div>
+      </div>
+      <button class="logout-btn" title="Déconnexion" onclick="window.location.href='login.html'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══ Main ════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- En-tête -->
+    <div class="main-header">
+      <div>
+        <h1>Tableau de bord</h1>
+        <p id="dateNow">Chargement de la date…</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Rechercher
+        </button>
+        <button class="btn btn-primary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nouveau dossier
+        </button>
+      </div>
+    </div>
+
+    <!-- Alerte sécurité (exemple) -->
+    <div class="security-alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div>
+        <div class="security-alert-title">2 tentatives de connexion échouées détectées</div>
+        <div class="security-alert-desc">Utilisateur : user_elim_ka · IP : 192.168.1.47 · Il y a 8 minutes — Vérifiez le journal d'audit pour plus de détails.</div>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Patientes actives</span>
+          <div class="kpi-icon teal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value">47</div>
+        <div class="kpi-sub"><span class="kpi-trend up">↑ +3</span> ce mois</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Dossiers ouverts</span>
+          <div class="kpi-icon amber">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value">128</div>
+        <div class="kpi-sub"><span class="kpi-trend up">↑ +12</span> cette semaine</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Accès non autorisés</span>
+          <div class="kpi-icon red">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value">2</div>
+        <div class="kpi-sub"><span class="kpi-trend warn">⚠ à investiguer</span></div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Intégrité HMAC</span>
+          <div class="kpi-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+        </div>
+        <div class="kpi-value">100%</div>
+        <div class="kpi-sub"><span class="kpi-trend up">✓ Aucune altération</span></div>
+      </div>
+    </div>
+
+    <!-- Grille 2 colonnes -->
+    <div class="two-col">
+
+      <!-- Dossiers récents -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Dossiers récents</span>
+          <a class="card-action" href="#">Voir tout</a>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Patiente</th>
+                <th>Type</th>
+                <th>Modifié</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0041</code></td>
+                <td>Fatou Ndiaye</td>
+                <td>Médical</td>
+                <td>Aujourd'hui, 11h22</td>
+                <td><span class="badge-status active">Actif</span></td>
+                <td><a class="action-link" href="#">Ouvrir →</a></td>
+              </tr>
+              <tr>
+                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DN-0018</code></td>
+                <td>Aminata Sow</td>
+                <td>Néonatal</td>
+                <td>Aujourd'hui, 09h54</td>
+                <td><span class="badge-status active">Actif</span></td>
+                <td><a class="action-link" href="#">Ouvrir →</a></td>
+              </tr>
+              <tr>
+                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0039</code></td>
+                <td>Rokhaya Ba</td>
+                <td>Médical</td>
+                <td>Hier, 16h10</td>
+                <td><span class="badge-status pending">En cours</span></td>
+                <td><a class="action-link" href="#">Ouvrir →</a></td>
+              </tr>
+              <tr>
+                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0035</code></td>
+                <td>Mariame Diallo</td>
+                <td>Médical</td>
+                <td>31 mai, 14h33</td>
+                <td><span class="badge-status closed">Clôturé</span></td>
+                <td><a class="action-link" href="#">Ouvrir →</a></td>
+              </tr>
+              <tr>
+                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DN-0015</code></td>
+                <td>Ndeye Fall</td>
+                <td>Néonatal</td>
+                <td>30 mai, 10h05</td>
+                <td><span class="badge-status active">Actif</span></td>
+                <td><a class="action-link" href="#">Ouvrir →</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Journal d'audit -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Journal d'audit récent</span>
+          <a class="card-action" href="#">Voir tout</a>
+        </div>
+        <div class="audit-list">
+
+          <div class="audit-item">
+            <div class="audit-dot warn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            </div>
+            <div class="audit-meta">
+              <div class="audit-action">LOGIN_FAILURE × 2</div>
+              <div class="audit-detail">user_elim_ka · 192.168.1.47</div>
+            </div>
+            <div class="audit-time">Il y a 8 min</div>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-dot read">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="audit-meta">
+              <div class="audit-action">DOSSIER_READ</div>
+              <div class="audit-detail">Dr H. Diallo · #DM-0041</div>
+            </div>
+            <div class="audit-time">11h22</div>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-dot write">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="audit-meta">
+              <div class="audit-action">DOSSIER_CREATE</div>
+              <div class="audit-detail">Dr H. Diallo · #DM-0041</div>
+            </div>
+            <div class="audit-time">10h44</div>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-dot login">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
+            </div>
+            <div class="audit-meta">
+              <div class="audit-action">LOGIN_SUCCESS</div>
+              <div class="audit-detail">Dr H. Diallo · 192.168.1.21</div>
+            </div>
+            <div class="audit-time">08h30</div>
+          </div>
+
+          <div class="audit-item">
+            <div class="audit-dot read">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div class="audit-meta">
+              <div class="audit-action">DOSSIER_READ</div>
+              <div class="audit-detail">Dr H. Diallo · #DN-0018</div>
+            </div>
+            <div class="audit-time">Hier 16h55</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  // Date dynamique
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('dateNow').textContent =
+    new Date().toLocaleDateString('fr-FR', opts);
+
+  // Infos utilisateur depuis sessionStorage (à alimenter après auth JWT)
+  const storedName = sessionStorage.getItem('nc_user_name') || 'Dr Hadja Diallo';
+  const storedRole = sessionStorage.getItem('nc_user_role') || 'SAGE_FEMME';
+  document.getElementById('userName').textContent  = storedName;
+  document.getElementById('userRole').textContent  = storedRole;
+  document.getElementById('avatarInitials').textContent =
+    storedName.split(' ').filter(w => /^[A-ZÀ-Ÿ]/.test(w)).slice(0,2).map(w=>w[0]).join('');
+</script>
+</body>
+</html>

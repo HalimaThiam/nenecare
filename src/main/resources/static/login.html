@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+develop
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NeneCare - Connexion</title>
@@ -43,5 +44,533 @@
             }
         });
     </script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeneCare – Connexion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --teal-deep:   #0d5c63;
+      --teal-mid:    #1a8a8a;
+      --teal-light:  #2ec4b6;
+      --cream:       #f7f4ef;
+      --white:       #ffffff;
+      --slate:       #374151;
+      --slate-light: #6b7280;
+      --error:       #c0392b;
+      --border:      #d1cfc9;
+      --shadow:      rgba(13, 92, 99, 0.12);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--slate);
+    }
+
+    /* ── Layout : deux colonnes ────────────────────────────────── */
+    .page {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: 100vh;
+    }
+
+    /* ── Panneau gauche – illustration / branding ──────────────── */
+    .panel-left {
+      position: relative;
+      background: var(--teal-deep);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 3rem;
+      overflow: hidden;
+    }
+
+    /* Cercles décoratifs */
+    .panel-left::before,
+    .panel-left::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(46, 196, 182, 0.12);
+    }
+    .panel-left::before {
+      width: 480px; height: 480px;
+      top: -120px; left: -120px;
+    }
+    .panel-left::after {
+      width: 320px; height: 320px;
+      bottom: 80px; right: -80px;
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* SVG illustration maternité (minimaliste) */
+    .illustration {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -54%);
+      opacity: 0.18;
+      width: 340px;
+    }
+
+    .panel-left-content {
+      position: relative;
+      z-index: 1;
+    }
+    .panel-left-content h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2rem;
+      color: var(--white);
+      line-height: 1.25;
+      margin-bottom: .75rem;
+    }
+    .panel-left-content p {
+      font-size: .9rem;
+      color: rgba(255,255,255,.65);
+      line-height: 1.6;
+      max-width: 340px;
+    }
+
+    /* Badges certification */
+    .badges {
+      display: flex;
+      gap: .75rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .04em;
+      color: var(--teal-light);
+      border: 1px solid rgba(46,196,182,.4);
+      border-radius: 100px;
+      padding: .25rem .75rem;
+    }
+    .badge svg { width: 12px; height: 12px; }
+
+    /* ── Panneau droit – formulaire ────────────────────────────── */
+    .panel-right {
+      background: var(--white);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 3.5rem 3rem;
+      box-shadow: -8px 0 40px var(--shadow);
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      margin-bottom: 2.5rem;
+    }
+    .logo-icon {
+      width: 40px; height: 40px;
+      background: var(--teal-deep);
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+    }
+    .logo-icon svg { width: 22px; height: 22px; }
+    .logo-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--teal-deep);
+      letter-spacing: -.01em;
+    }
+    .logo-tag {
+      font-size: .7rem;
+      font-weight: 500;
+      color: var(--slate-light);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    /* Heading */
+    .form-heading { margin-bottom: 2rem; }
+    .form-heading h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      color: var(--slate);
+      margin-bottom: .3rem;
+    }
+    .form-heading p {
+      font-size: .875rem;
+      color: var(--slate-light);
+    }
+
+    /* Champs */
+    .field { margin-bottom: 1.25rem; }
+    .field label {
+      display: block;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--slate);
+      margin-bottom: .45rem;
+    }
+    .input-wrap {
+      position: relative;
+    }
+    .input-wrap svg.field-icon {
+      position: absolute;
+      left: .9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px; height: 16px;
+      color: var(--slate-light);
+      pointer-events: none;
+    }
+    .field input {
+      width: 100%;
+      padding: .75rem 1rem .75rem 2.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .9rem;
+      color: var(--slate);
+      background: var(--cream);
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .field input:focus {
+      border-color: var(--teal-mid);
+      box-shadow: 0 0 0 3px rgba(26,138,138,.12);
+      background: var(--white);
+    }
+    .field input::placeholder { color: var(--slate-light); }
+
+    /* Toggle mot de passe */
+    .toggle-pw {
+      position: absolute;
+      right: .9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--slate-light);
+      display: flex;
+      align-items: center;
+    }
+    .toggle-pw svg { width: 18px; height: 18px; }
+
+    /* Ligne utilitaire */
+    .field-utils {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: -.5rem;
+      margin-bottom: 1rem;
+    }
+    .field-utils a {
+      font-size: .8rem;
+      color: var(--teal-mid);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .field-utils a:hover { text-decoration: underline; }
+
+    /* Alerte d'erreur */
+    .alert-error {
+      display: none;
+      align-items: center;
+      gap: .5rem;
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: .65rem .9rem;
+      font-size: .82rem;
+      color: var(--error);
+      margin-bottom: 1.2rem;
+    }
+    .alert-error.show { display: flex; }
+    .alert-error svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* Bouton */
+    .btn-primary {
+      width: 100%;
+      padding: .85rem;
+      background: var(--teal-deep);
+      color: var(--white);
+      border: none;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+    .btn-primary:hover { background: var(--teal-mid); }
+    .btn-primary:active { transform: scale(.99); }
+
+    /* Séparateur RBAC */
+    .rbac-note {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin: 1.5rem 0 1.25rem;
+    }
+    .rbac-note::before,
+    .rbac-note::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .rbac-note span {
+      font-size: .72rem;
+      font-weight: 500;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--slate-light);
+      white-space: nowrap;
+    }
+
+    /* Sélecteur de rôle */
+    .role-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+    }
+    .role-btn {
+      padding: .55rem .3rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--slate-light);
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s;
+    }
+    .role-btn:hover,
+    .role-btn.active {
+      border-color: var(--teal-mid);
+      background: rgba(26,138,138,.08);
+      color: var(--teal-deep);
+    }
+
+    /* Footer */
+    .form-footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: .78rem;
+      color: var(--slate-light);
+    }
+    .form-footer strong { color: var(--slate); }
+
+    /* ── Responsive ────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .panel-left { display: none; }
+      .panel-right { padding: 2.5rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ Panneau gauche ═══════════════════════════════════════ -->
+  <div class="panel-left">
+
+    <!-- Illustration maternité SVG minimaliste -->
+    <svg class="illustration" viewBox="0 0 300 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Corps mère -->
+      <ellipse cx="150" cy="200" rx="65" ry="95" fill="white"/>
+      <!-- Ventre -->
+      <ellipse cx="150" cy="225" rx="45" ry="50" fill="rgba(255,255,255,0.6)"/>
+      <!-- Bébé -->
+      <ellipse cx="150" cy="230" rx="25" ry="30" fill="rgba(255,255,255,0.4)"/>
+      <!-- Tête mère -->
+      <circle cx="150" cy="95" r="40" fill="white"/>
+      <!-- Bras -->
+      <path d="M85 195 Q60 230 80 260" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <path d="M215 195 Q240 230 220 260" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <!-- Croix médicale -->
+      <rect x="136" y="155" width="28" height="8" rx="4" fill="rgba(46,196,182,0.7)"/>
+      <rect x="147" y="144" width="8" height="28" rx="4" fill="rgba(46,196,182,0.7)"/>
+    </svg>
+
+    <div class="panel-left-content">
+      <h2>Soin, sécurité<br/>et confidentialité.</h2>
+      <p>NeneCare protège les dossiers médicaux maternels et néonatals avec un chiffrement post-quantique et une traçabilité complète.</p>
+      <div class="badges">
+        <span class="badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          CRYSTALS-Kyber
+        </span>
+        <span class="badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          AES-256-GCM
+        </span>
+        <span class="badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          RBAC & Audit log
+        </span>
+        <span class="badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          HMAC-SHA256
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Panneau droit – formulaire ═══════════════════════════ -->
+  <div class="panel-right">
+
+    <!-- Logo -->
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
+          <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">NeneCare</div>
+        <div class="logo-tag">Dossiers médicaux sécurisés</div>
+      </div>
+    </div>
+
+    <!-- Titre -->
+    <div class="form-heading">
+      <h1>Connexion</h1>
+      <p>Accédez à votre espace sécurisé</p>
+    </div>
+
+    <!-- Alerte erreur -->
+    <div class="alert-error" id="alertError">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span id="alertMsg">Identifiants incorrects. Veuillez réessayer.</span>
+    </div>
+
+    <!-- Formulaire -->
+    <form id="loginForm" novalidate>
+
+      <!-- Identifiant -->
+      <div class="field">
+        <label for="username">Identifiant</label>
+        <div class="input-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input type="text" id="username" name="username"
+                 placeholder="Votre identifiant" autocomplete="username" required />
+        </div>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <div class="input-wrap">
+          <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+          </svg>
+          <input type="password" id="password" name="password"
+                 placeholder="••••••••" autocomplete="current-password" required />
+          <button type="button" class="toggle-pw" id="togglePw" aria-label="Afficher le mot de passe">
+            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="field-utils">
+        <a href="#">Mot de passe oublié ?</a>
+      </div>
+
+      <!-- Rôle RBAC -->
+      <div class="rbac-note"><span>Sélectionnez votre rôle</span></div>
+      <div class="role-selector" id="roleSelector">
+        <button type="button" class="role-btn active" data-role="MEDECIN">Médecin</button>
+        <button type="button" class="role-btn" data-role="SAGE_FEMME">Sage-femme</button>
+        <button type="button" class="role-btn" data-role="ADMIN">Administrateur</button>
+      </div>
+      <input type="hidden" id="roleInput" name="role" value="MEDECIN" />
+
+      <!-- Submit -->
+      <br/>
+      <button type="submit" class="btn-primary" id="submitBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Se connecter
+      </button>
+    </form>
+
+    <div class="form-footer">
+      Système réservé au personnel autorisé – <strong>NeneCare © 2026</strong><br/>
+      ESP-UCAD · M1-SSI · DevSecOps
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sélecteur de rôle
+  document.querySelectorAll('.role-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('roleInput').value = btn.dataset.role;
+    });
+  });
+
+  // Toggle mot de passe
+  document.getElementById('togglePw').addEventListener('click', () => {
+    const pw = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    if (pw.type === 'password') {
+      pw.type = 'text';
+      icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+    } else {
+      pw.type = 'password';
+      icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+    }
+  });
+
+  // Soumission (à connecter au backend Spring Security)
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const alert = document.getElementById('alertError');
+    alert.classList.remove('show');
+    btn.textContent = 'Connexion en cours…';
+    btn.disabled = true;
+
+    // TODO : remplacer par l'appel fetch vers /api/auth/login (JWT)
+    // Simulation d'erreur de démonstration
+    setTimeout(() => {
+      // En production : rediriger vers accueil.html si 200, afficher alerte si 401
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+        </svg>
+        Se connecter`;
+    }, 1200);
+  });
+</script>
+  feature/audit
 </body>
 </html>
