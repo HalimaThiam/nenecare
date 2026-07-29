@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeneCare – Journal d'audit</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1>Journal d'audit</h1>
+        <p>Traçabilité des accès — chaque entrée est signée HMAC-SHA256 (OS-08)</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" id="btnVerifier">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Vérifier l'intégrité
+        </button>
+        <button class="btn btn-primary" id="btnRafraichir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+          Rafraîchir
+        </button>
+      </div>
+    </div>
+
+    <div id="zoneMessage"></div>
+
+    <div class="kpi-grid" id="grilleKpi"></div>
+
+    <div class="barre-outils">
+      <div class="recherche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="champRecherche" placeholder="Filtrer (utilisateur, action, ressource)…" />
+      </div>
+      <button class="btn btn-outline" id="btnEchecs">Échecs uniquement</button>
+      <button class="btn btn-outline" id="btnTout">Tout le journal</button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap" id="zoneTableau">
+        <div class="vide">Chargement…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+// =============================================================================
+// Consultation du journal d'audit - US-16, US-17. Reserve a l'ADMIN.
+// Proprietaire : Hadja (audit / frontend).
+//
+// La page est servie a tout le monde (c'est un fichier statique), mais l'API
+// repond 403 aux autres roles : le contenu, lui, reste protege.
+// =============================================================================
+
+const { el, badge, vide, dateHeure } = NeneCareShell;
+
+const utilisateur = NeneCareShell.monter('audit');
+if (!utilisateur) { throw new Error('Redirection vers la connexion'); }
+
+let journal = [];
+let filtreEchecs = false;
+
+function message(texte, type) {
+  const zone = document.getElementById('zoneMessage');
+  const bloc = el('div', 'alerte-ligne ' + type);
+  bloc.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+    + '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  bloc.appendChild(el('div', null, texte));
+  zone.replaceChildren(bloc);
+}
+
+/** Actions considérées comme sensibles : mises en évidence dans le tableau. */
+const ACTIONS_SENSIBLES = ['ACCES_URGENCE', 'ACCES_REFUSE', 'LOGIN_BLOCKED', 'LOGIN_FAILURE'];
+
+function typeBadge(entree) {
+  if (entree.succes === false) return 'alerte';
+  if (ACTIONS_SENSIBLES.includes(entree.action)) return 'attente';
+  return 'ok';
+}
+
+function rendre() {
+  const zone = document.getElementById('zoneTableau');
+  const terme = document.getElementById('champRecherche').value.trim().toLowerCase();
+
+  let liste = filtreEchecs ? journal.filter(e => e.succes === false) : journal;
+  if (terme) {
+    liste = liste.filter(e => [e.utilisateur, e.role, e.action, e.ressource, e.details,
+                               e.adresseIp].join(' ').toLowerCase().includes(terme));
+  }
+
+  if (liste.length === 0) {
+    zone.replaceChildren(vide('Aucune entrée ne correspond.'));
+    return;
+  }
+
+  const table = el('table');
+  const thead = el('thead');
+  const trTete = el('tr');
+  ['Horodatage', 'Utilisateur', 'Rôle', 'Action', 'Ressource', 'Détails', 'IP', 'Résultat']
+    .forEach(t => trTete.appendChild(el('th', null, t)));
+  thead.appendChild(trTete);
+  table.appendChild(thead);
+
+  const tbody = el('tbody');
+  liste.forEach(entree => {
+    const tr = el('tr');
+    [dateHeure(entree.timestamp), entree.utilisateur, entree.role, entree.action,
+     entree.ressource || '—', entree.details || '—', entree.adresseIp || '—']
+      .forEach(valeur => tr.appendChild(el('td', null, valeur)));
+
+    const td = el('td');
+    td.appendChild(badge(entree.succes ? 'Succès' : 'Refusé', typeBadge(entree)));
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  zone.replaceChildren(table);
+}
+
+function carte(libelle, valeur, sousTitre, couleur) {
+  const c = el('div', 'kpi-card');
+  const haut = el('div', 'kpi-top');
+  haut.appendChild(el('span', 'kpi-label', libelle));
+  const rond = el('div', 'kpi-icon ' + couleur);
+  rond.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+    + '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  haut.appendChild(rond);
+  c.appendChild(haut);
+  c.appendChild(el('div', 'kpi-value', String(valeur)));
+  c.appendChild(el('div', 'kpi-sub', sousTitre));
+  return c;
+}
+
+function majKpis() {
+  const echecs = journal.filter(e => e.succes === false).length;
+  const urgences = journal.filter(e => e.action === 'ACCES_URGENCE').length;
+  const acteurs = new Set(journal.map(e => e.utilisateur)).size;
+
+  const grille = document.getElementById('grilleKpi');
+  grille.replaceChildren(
+    carte('Évènements', journal.length, 'Depuis le démarrage', 'teal'),
+    carte('Tentatives refusées', echecs,
+          echecs === 0 ? 'Aucune anomalie' : 'À examiner', echecs === 0 ? 'green' : 'red'),
+    carte("Accès d'urgence", urgences,
+          urgences === 0 ? 'Aucune dérogation' : 'Dérogations tracées (US-14)',
+          urgences === 0 ? 'green' : 'amber'),
+    carte('Utilisateurs actifs', acteurs, 'Comptes ayant agi', 'teal'));
+}
+
+async function charger() {
+  const zone = document.getElementById('zoneTableau');
+  zone.replaceChildren(vide('Chargement…'));
+  try {
+    journal = await NeneCareApi.get('/api/audit/logs') || [];
+    majKpis();
+    rendre();
+  } catch (err) {
+    document.getElementById('grilleKpi').replaceChildren();
+    zone.replaceChildren(vide(err.statut === 403
+      ? "Le journal d'audit est réservé à l'administrateur."
+      : 'Journal indisponible : ' + err.message));
+  }
+}
+
+async function verifierIntegrite() {
+  try {
+    const resultat = await NeneCareApi.get('/api/audit/integrite');
+    message(resultat.alterees === 0
+      ? '✓ Intégrité vérifiée : les ' + resultat.entrees
+        + ' entrées portent une signature HMAC-SHA256 valide.'
+      : '⚠ ' + resultat.alterees + ' entrée(s) altérée(s) sur ' + resultat.entrees
+        + ' — identifiants : ' + resultat.idsAlterees.join(', '),
+      resultat.alterees === 0 ? 'succes' : 'erreur');
+  } catch (err) {
+    message('Vérification impossible : ' + err.message, 'erreur');
+  }
+}
+
+document.getElementById('champRecherche').addEventListener('input', rendre);
+document.getElementById('btnRafraichir').addEventListener('click', charger);
+document.getElementById('btnVerifier').addEventListener('click', verifierIntegrite);
+document.getElementById('btnEchecs').addEventListener('click', () => {
+  filtreEchecs = true; rendre();
+});
+document.getElementById('btnTout').addEventListener('click', () => {
+  filtreEchecs = false; rendre();
+});
+
+charger();
+</script>
+</body>
+</html>

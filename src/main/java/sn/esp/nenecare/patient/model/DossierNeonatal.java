@@ -19,56 +19,71 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Dossier medical de suivi de grossesse d'une patiente - US-07 a US-09.
+ * Dossier du nouveau-ne - US-10 a US-13.
  *
  * Proprietaire : Amadou (patient / crypto).
  *
- * Le contenu medical (diagnostic, traitement, observations) est stocke
- * CHIFFRE en AES-256-GCM (OS-03) et l'ensemble du dossier est SIGNE en
- * HMAC-SHA256 (OS-07).
+ * LIAISON MERE-ENFANT (OS-06) : chaque dossier neonatal pointe vers la
+ * patiente mere via une association @ManyToOne obligatoire. Une mere peut
+ * avoir plusieurs enfants (grossesses successives ou multiples), un dossier
+ * neonatal a toujours exactement une mere. La contrainte de cle etrangere
+ * garantit qu'aucun dossier d'enfant ne peut exister sans mere rattachee -
+ * c'est la regle qui rend le suivi mere-enfant fiable.
  *
- * Chiffrement et signature repondent a deux menaces distinctes :
- *  - le chiffrement empeche de LIRE le dossier depuis une copie de la base ;
- *  - la signature empeche de le MODIFIER sans que cela se voie, y compris par
- *    quelqu'un qui aurait un acces SQL direct.
- * L'un sans l'autre laisserait un trou : un diagnostic illisible reste
- * remplacable par un autre bloc chiffre si rien ne le lie a son dossier.
+ * Le pediatre accede au dossier de l'enfant ; le lien lui donne le contexte
+ * obstetrical sans dupliquer les donnees de la mere.
  */
 @Entity
-@Table(name = "dossiers_medicaux", indexes = {
-        @Index(name = "idx_dossier_numero",   columnList = "numero_dossier", unique = true),
-        @Index(name = "idx_dossier_patiente", columnList = "patiente_id"),
-        @Index(name = "idx_dossier_statut",   columnList = "statut")
+@Table(name = "dossiers_neonatals", indexes = {
+        @Index(name = "idx_neonat_numero", columnList = "numero_dossier", unique = true),
+        @Index(name = "idx_neonat_mere",   columnList = "mere_id")
 })
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DossierMedical {
+public class DossierNeonatal {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Identifiant metier du dossier (ex. DM-2026-0001). */
+    /** Identifiant metier du dossier (ex. DN-2026-0001). */
     @Column(name = "numero_dossier", nullable = false, unique = true, length = 40)
     private String numeroDossier;
 
-    /**
-     * Patiente concernee. LAZY : la liste des dossiers ne doit pas declencher
-     * une requete par ligne pour recharger une patiente dont on n'affiche
-     * qu'un libelle.
-     */
+    /** La mere. optional = false : pas de dossier neonatal orphelin (OS-06). */
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "patiente_id", nullable = false)
-    private Patiente patiente;
+    @JoinColumn(name = "mere_id", nullable = false)
+    private Patiente mere;
 
-    @Column(name = "date_consultation", nullable = false)
-    private LocalDate dateConsultation;
+    @Column(name = "nom_bebe", nullable = false, length = 120)
+    private String nomBebe;
 
-    /** Motif d'ordre general (ex. "Consultation prenatale"), non nominatif. */
-    @Column(name = "motif", length = 200)
-    private String motif;
+    /** M ou F. */
+    @Column(name = "sexe", length = 1)
+    private String sexe;
+
+    @Column(name = "date_naissance", nullable = false)
+    private LocalDate dateNaissance;
+
+    // -------------------------------------------------------------------------
+    // Mesures a la naissance
+    // -------------------------------------------------------------------------
+    // Conservees en clair : ce sont les seules valeurs sur lesquelles la
+    // clinique produit des statistiques agregees (poids moyen, prematurite).
+    // Isolees, elles n'identifient personne ; c'est leur rattachement au nom
+    // qui serait sensible, et ce lien passe par la table chiffree de la mere.
+
+    @Column(name = "poids_grammes")
+    private Integer poidsGrammes;
+
+    @Column(name = "taille_cm")
+    private Integer tailleCm;
+
+    /** Score d'Apgar a 5 minutes (0 a 10). */
+    @Column(name = "score_apgar")
+    private Integer scoreApgar;
 
     // -------------------------------------------------------------------------
     // Contenu medical chiffre (AES-256-GCM) - OS-03
@@ -77,9 +92,6 @@ public class DossierMedical {
     @Column(name = "diagnostic_chiffre", columnDefinition = "TEXT")
     private String diagnosticChiffre;
 
-    @Column(name = "traitement_chiffre", columnDefinition = "TEXT")
-    private String traitementChiffre;
-
     @Column(name = "observations_chiffre", columnDefinition = "TEXT")
     private String observationsChiffre;
 
@@ -87,7 +99,6 @@ public class DossierMedical {
     // Integrite (OS-07)
     // -------------------------------------------------------------------------
 
-    /** HMAC-SHA256 du contenu metier, recalcule a chaque modification. */
     @Column(name = "signature_hmac", length = 200)
     private String signatureHmac;
 
@@ -95,11 +106,6 @@ public class DossierMedical {
     // Cycle de vie et tracabilite
     // -------------------------------------------------------------------------
 
-    /**
-     * ACTIF ou ARCHIVE (US-09). Un dossier archive reste consultable et
-     * conserve sa signature : en milieu medical, on n'efface pas un dossier,
-     * on le ferme.
-     */
     @Column(name = "statut", nullable = false, length = 20)
     @Builder.Default
     private String statut = StatutDossier.ACTIF;

@@ -10,6 +10,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import sn.esp.nenecare.user.model.Role;
@@ -25,6 +26,9 @@ import sn.esp.nenecare.user.repository.UserRepository;
  * que si la table est vide, pour ne pas ecraser de vrais comptes.
  *
  * A NE JAMAIS activer en production : les mots de passe sont connus.
+ *
+ * Les dossiers de demonstration sont crees separement, par
+ * {@link DossiersDemoInitializer}, apres ce runner.
  */
 @Configuration
 @ConditionalOnProperty(name = "nenecare.demo.enabled", havingValue = "true")
@@ -32,7 +36,19 @@ public class DonneesDemoInitializer {
 
     private static final Logger log = LoggerFactory.getLogger(DonneesDemoInitializer.class);
 
+    /** Gynecologue referent du portefeuille principal. */
+    public static final String GYNECO_PRINCIPAL = "gyneco";
+
+    /**
+     * Second gynecologue. Indispensable a la demonstration du DAC : sans deux
+     * praticiens, on ne peut pas montrer qu'un gynecologue est bloque sur les
+     * patientes d'un confrere.
+     */
+    public static final String GYNECO_SECONDAIRE = "gyneco2";
+
+    /** Ordre 10 : les comptes d'abord, les dossiers ensuite (ordre 20). */
     @Bean
+    @Order(10)
     public ApplicationRunner creerComptesDemo(UserRepository userRepository,
                                               PasswordEncoder passwordEncoder,
                                               @Value("${nenecare.demo.mot-de-passe}") String motDePasse) {
@@ -43,12 +59,13 @@ public class DonneesDemoInitializer {
             }
 
             List<User> comptes = List.of(
-                compte("admin",       "Halima THIAM",   Role.ADMIN,       motDePasse, passwordEncoder),
-                compte("gyneco",      "Amadou DIAO",    Role.GYNECOLOGUE, motDePasse, passwordEncoder),
-                compte("pediatre",    "Elimane KA",     Role.PEDIATRE,    motDePasse, passwordEncoder),
-                compte("sagefemme",   "Hadja DIALLO",   Role.SAGE_FEMME,  motDePasse, passwordEncoder),
-                compte("infirmier",   "Moussa NDIAYE",  Role.INFIRMIER,   motDePasse, passwordEncoder),
-                compte("secretaire",  "Awa FALL",       Role.SECRETAIRE,  motDePasse, passwordEncoder)
+                compte("admin",              "Halima THIAM",   Role.ADMIN,       motDePasse, passwordEncoder),
+                compte(GYNECO_PRINCIPAL,     "Amadou DIAO",    Role.GYNECOLOGUE, motDePasse, passwordEncoder),
+                compte(GYNECO_SECONDAIRE,    "Cheikh SOW",     Role.GYNECOLOGUE, motDePasse, passwordEncoder),
+                compte("pediatre",           "Elimane KA",     Role.PEDIATRE,    motDePasse, passwordEncoder),
+                compte("sagefemme",          "Hadja DIALLO",   Role.SAGE_FEMME,  motDePasse, passwordEncoder),
+                compte("infirmier",          "Moussa NDIAYE",  Role.INFIRMIER,   motDePasse, passwordEncoder),
+                compte("secretaire",         "Awa FALL",       Role.SECRETAIRE,  motDePasse, passwordEncoder)
             );
 
             userRepository.saveAll(comptes);

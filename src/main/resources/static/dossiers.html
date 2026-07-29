@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NeneCare – Dossiers</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar" id="sidebar"></aside>
+
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1 id="titrePage">Dossiers</h1>
+        <p id="sousTitrePage">Chargement…</p>
+      </div>
+      <div class="header-actions" id="actionsEntete"></div>
+    </div>
+
+    <div id="zoneMessage"></div>
+
+    <div class="tabs" id="onglets"></div>
+
+    <div class="barre-outils">
+      <div class="recherche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="search" id="champRecherche" placeholder="Rechercher…" />
+      </div>
+      <button class="btn btn-outline" id="btnRafraichir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+        Rafraîchir
+      </button>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap" id="zoneTableau">
+        <div class="vide">Chargement…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Fenêtre modale unique, réutilisée pour le détail et les formulaires -->
+<div class="modale-fond" id="modaleFond">
+  <div class="modale">
+    <div class="modale-entete">
+      <span class="modale-titre" id="modaleTitre"></span>
+      <button class="modale-fermer" id="modaleFermer" aria-label="Fermer">&times;</button>
+    </div>
+    <div class="modale-corps" id="modaleCorps"></div>
+  </div>
+</div>
+
+<script src="/js/api.js"></script>
+<script src="/js/shell.js"></script>
+<script>
+// =============================================================================
+// Module Dossiers - US-05 a US-14.
+// Proprietaire : Hadja (frontend), sur l'API d'Amadou (patient/).
+//
+// Tout le contenu venant de la base est insere par textContent (via
+// NeneCareShell.el) : un champ medical contenant "<script>" s'affiche comme du
+// texte, il ne s'execute pas.
+// =============================================================================
+
+const { el, badge, vide, date, dateHeure } = NeneCareShell;
+
+const utilisateur = NeneCareShell.monter('patientes');
+if (!utilisateur) { throw new Error('Redirection vers la connexion'); }
+
+// Doit rester aligne sur les @PreAuthorize des controleurs cote serveur.
+const DROITS = {
+  patientesLire   : ['ADMIN','GYNECOLOGUE','PEDIATRE','SAGE_FEMME','INFIRMIER','SECRETAIRE'],
+  patientesEcrire : ['ADMIN','SECRETAIRE'],
+  dossiersLire    : ['ADMIN','GYNECOLOGUE','SAGE_FEMME','INFIRMIER'],
+  dossiersEcrire  : ['GYNECOLOGUE','SAGE_FEMME'],
+  neonatalsLire   : ['ADMIN','PEDIATRE','SAGE_FEMME','INFIRMIER'],
+  neonatalsEcrire : ['PEDIATRE','SAGE_FEMME'],
+  archiver        : ['ADMIN']
+};
+const peut = cle => NeneCareShell.peut(DROITS[cle]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Etat de la page
+// ─────────────────────────────────────────────────────────────────────────────
+
+const VUES = {
+  patientes: {
+    id: 'patientes', libelle: 'Patientes', droit: 'patientesLire',
+    titre: 'Patientes', sousTitre: 'Fiches administratives et coordonnées protégées'
+  },
+  dossiers: {
+    id: 'dossiers', libelle: 'Dossiers médicaux', droit: 'dossiersLire',
+    titre: 'Dossiers médicaux', sousTitre: 'Suivi de grossesse — contenu chiffré AES-256-GCM'
+  },
+  neonatals: {
+    id: 'neonatals', libelle: 'Dossiers néonatals', droit: 'neonatalsLire',
+    titre: 'Dossiers néonatals', sousTitre: 'Nouveau-nés rattachés à leur mère'
+  }
+};
+
+const vuesAutorisees = Object.values(VUES).filter(v => peut(v.droit));
+let vueCourante = null;
+let donnees = [];
+let patientesEnCache = [];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Messages
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ICONE_ALERTE = '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>';
+const ICONE_OK = '<polyline points="20 6 9 17 4 12"/>';
+const ICONE_CADENAS = '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>';
+
+function message(texte, type = 'info', icone = ICONE_ALERTE) {
+  const zone = document.getElementById('zoneMessage');
+  zone.replaceChildren();
+  const bloc = el('div', 'alerte-ligne ' + type);
+  bloc.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+                 + icone + '</svg>';
+  bloc.appendChild(el('div', null, texte));
+  zone.appendChild(bloc);
+  if (type === 'succes') setTimeout(() => zone.replaceChildren(), 5000);
+}
+
+function effacerMessage() {
+  document.getElementById('zoneMessage').replaceChildren();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fenêtre modale
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ouvrirModale(titre, contenu) {
+  document.getElementById('modaleTitre').textContent = titre;
+  const corps = document.getElementById('modaleCorps');
+  corps.replaceChildren(contenu);
+  document.getElementById('modaleFond').classList.add('ouverte');
+}
+
+function fermerModale() {
+  document.getElementById('modaleFond').classList.remove('ouverte');
+  document.getElementById('modaleCorps').replaceChildren();
+}
+
+document.getElementById('modaleFermer').addEventListener('click', fermerModale);
+document.getElementById('modaleFond').addEventListener('click', e => {
+  if (e.target.id === 'modaleFond') fermerModale();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fermerModale(); });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Affichage des champs
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Champ dont la valeur est stockée chiffrée : marqué visuellement. */
+function champProtege(libelle, valeur) {
+  const bloc = el('div', 'champ-protege');
+  const titre = el('div', 'libelle');
+  titre.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
+                  + ICONE_CADENAS + '</svg>';
+  titre.appendChild(el('span', null, libelle + ' · chiffré'));
+  bloc.appendChild(titre);
+  bloc.appendChild(el('div', 'valeur', valeur || '—'));
+  return bloc;
+}
+
+function champ(libelle, valeur) {
+  const bloc = el('div', 'champ-simple');
+  bloc.appendChild(el('div', 'libelle', libelle));
+  bloc.appendChild(el('div', 'valeur', valeur === null || valeur === undefined || valeur === ''
+                                        ? '—' : String(valeur)));
+  return bloc;
+}
+
+function badgeIntegrite(integre) {
+  return badge(integre ? '✓ Signature HMAC valide' : '⚠ Signature invalide',
+               integre ? 'ok' : 'alerte');
+}
+
+function badgeStatut(statut) {
+  return badge(statut === 'ARCHIVE' ? 'Archivé' : 'Actif',
+               statut === 'ARCHIVE' ? 'neutre' : 'info');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tableaux
+// ─────────────────────────────────────────────────────────────────────────────
+
+function construireTableau(colonnes, lignes, auClic) {
+  if (lignes.length === 0) {
+    return vide('Aucun élément à afficher.');
+  }
+
+  const table = el('table');
+  const thead = el('thead');
+  const trTete = el('tr');
+  colonnes.forEach(c => trTete.appendChild(el('th', null, c)));
+  thead.appendChild(trTete);
+  table.appendChild(thead);
+
+  const tbody = el('tbody');
+  lignes.forEach(({ cellules, source }) => {
+    const tr = el('tr', auClic ? 'ligne-cliquable' : null);
+    cellules.forEach(cellule => {
+      const td = el('td');
+      if (cellule instanceof Node) td.appendChild(cellule);
+      else td.textContent = cellule === null || cellule === undefined ? '—' : String(cellule);
+      tr.appendChild(td);
+    });
+    if (auClic) tr.addEventListener('click', () => auClic(source));
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  return table;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chargement des données
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ENDPOINTS = {
+  patientes: '/api/patientes',
+  dossiers:  '/api/dossiers',
+  neonatals: '/api/neonatals'
+};
+
+async function charger() {
+  const zone = document.getElementById('zoneTableau');
+  zone.replaceChildren(vide('Chargement…'));
+  try {
+    donnees = await NeneCareApi.get(ENDPOINTS[vueCourante.id]) || [];
+    if (vueCourante.id === 'patientes') patientesEnCache = donnees;
+    rendre();
+  } catch (err) {
+    zone.replaceChildren(vide('Impossible de charger les données : ' + err.message));
+  }
+}
+
+/** Recharge la liste des patientes, nécessaire aux listes déroulantes. */
+async function chargerPatientes() {
+  if (patientesEnCache.length > 0) return patientesEnCache;
+  patientesEnCache = await NeneCareApi.get('/api/patientes') || [];
+  return patientesEnCache;
+}
+
+function filtrer(liste) {
+  const terme = document.getElementById('champRecherche').value.trim().toLowerCase();
+  if (!terme) return liste;
+  return liste.filter(x => JSON.stringify(x).toLowerCase().includes(terme));
+}
+
+function rendre() {
+  const zone = document.getElementById('zoneTableau');
+  const liste = filtrer(donnees);
+
+  if (vueCourante.id === 'patientes') {
+    zone.replaceChildren(construireTableau(
+      ['N° patiente', 'Nom', 'Naissance', 'Gynécologue référent', 'Dossiers', ''],
+      liste.map(p => ({
+        source: p,
+        cellules: [
+          p.numeroPatiente,
+          p.prenom + ' ' + p.nom,
+          date(p.dateNaissance),
+          p.gynecologueAssigne || '—',
+          (p.nombreDossiersMedicaux || 0) + ' suivi(s) · '
+            + (p.nombreDossiersNeonatals || 0) + ' né(s)',
+          el('span', 'action-link', 'Consulter')
+        ]
+      })),
+      detailPatiente));
+
+  } else if (vueCourante.id === 'dossiers') {
+    zone.replaceChildren(construireTableau(
+      ['N° dossier', 'Patiente', 'Consultation', 'Motif', 'Statut', 'Intégrité', ''],
+      liste.map(d => ({
+        source: d,
+        cellules: [
+          d.numeroDossier, d.patienteNom, date(d.dateConsultation), d.motif,
+          badgeStatut(d.statut), badgeIntegrite(d.integre),
+          el('span', 'action-link', 'Ouvrir')
+        ]
+      })),
+      detailDossier));
+
+  } else {
+    zone.replaceChildren(construireTableau(
+      ['N° dossier', 'Nouveau-né', 'Sexe', 'Naissance', 'Poids', 'Mère', 'Intégrité', ''],
+      liste.map(n => ({
+        source: n,
+        cellules: [
+          n.numeroDossier, n.nomBebe, n.sexe, date(n.dateNaissance),
+          n.poidsGrammes ? n.poidsGrammes + ' g' : '—',
+          n.mereNom, badgeIntegrite(n.integre),
+          el('span', 'action-link', 'Ouvrir')
+        ]
+      })),
+      detailNeonatal));
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Vues de détail
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function detailPatiente(patiente) {
+  const corps = el('div');
+
+  const grille = el('div', 'grille-champs');
+  grille.appendChild(champ('N° patiente', patiente.numeroPatiente));
+  grille.appendChild(champ('Nom complet', patiente.prenom + ' ' + patiente.nom));
+  grille.appendChild(champ('Date de naissance', date(patiente.dateNaissance)));
+  grille.appendChild(champ('Gynécologue référent', patiente.gynecologueAssigne));
+  corps.appendChild(grille);
+
+  corps.appendChild(champProtege('Téléphone', patiente.telephone));
+  corps.appendChild(champProtege('Adresse', patiente.adresse));
+
+  if (patiente.voletMedicalVisible) {
+    corps.appendChild(champProtege('Groupe sanguin', patiente.groupeSanguin));
+    corps.appendChild(champProtege('Antécédents', patiente.antecedents));
+  } else {
+    const info = el('div', 'alerte-ligne info');
+    info.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">'
+                   + ICONE_CADENAS + '</svg>';
+    info.appendChild(el('div', null,
+      "Volet médical non transmis : votre rôle (" + utilisateur.role + ") n'y a pas accès. "
+      + "Le serveur ne l'a pas déchiffré."));
+    corps.appendChild(info);
+  }
+
+  // Historique mère-enfant, chargé seulement si le rôle peut le lire.
+  if (peut('dossiersLire')) {
+    corps.appendChild(sousSection('Dossiers de suivi',
+      await chargerSousListe('/api/dossiers/patiente/' + patiente.id,
+        d => d.numeroDossier + ' — ' + date(d.dateConsultation) + ' — ' + (d.motif || ''))));
+  }
+  if (peut('neonatalsLire')) {
+    corps.appendChild(sousSection('Nouveau-nés rattachés (liaison mère-enfant)',
+      await chargerSousListe('/api/neonatals/mere/' + patiente.id,
+        n => n.numeroDossier + ' — ' + n.nomBebe + ' — né(e) le ' + date(n.dateNaissance))));
+  }
+
+  if (peut('patientesEcrire')) {
+    const actions = el('div', 'form-actions');
+    const modifier = el('button', 'btn btn-outline', 'Modifier la fiche');
+    modifier.addEventListener('click', () => formulairePatiente(patiente));
+    actions.appendChild(modifier);
+    corps.appendChild(actions);
+  }
+
+  ouvrirModale('Fiche patiente · ' + patiente.numeroPatiente, corps);
+}
+
+function sousSection(titre, contenu) {
+  const bloc = el('div');
+  bloc.style.marginTop = '1.25rem';
+  const entete = el('div', 'libelle');
+  entete.style.cssText = 'font-size:.7rem;font-weight:700;letter-spacing:.06em;'
+                       + 'text-transform:uppercase;color:var(--slate-light);margin-bottom:.4rem;';
+  entete.textContent = titre;
+  bloc.appendChild(entete);
+  bloc.appendChild(contenu);
+  return bloc;
+}
+
+async function chargerSousListe(url, libelle) {
+  try {
+    const elements = await NeneCareApi.get(url) || [];
+    if (elements.length === 0) return el('div', 'info', 'Aucun élément.');
+    const liste = el('div');
+    elements.forEach(x => {
+      const ligne = el('div', null, '• ' + libelle(x));
+      ligne.style.cssText = 'font-size:.85rem;padding:.2rem 0;';
+      liste.appendChild(ligne);
+    });
+    return liste;
+  } catch (err) {
+    return el('div', 'info', 'Non accessible : ' + err.message);
+  }
+}
+
+function detailDossier(dossier) {
+  const corps = el('div');
+
+  const entete = el('div');
+  entete.style.cssText = 'display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;';
+  entete.appendChild(badgeStatut(dossier.statut));
+  entete.appendChild(badgeIntegrite(dossier.integre));
+  corps.appendChild(entete);
+
+  const grille = el('div', 'grille-champs');
+  grille.appendChild(champ('Patiente', dossier.patienteNom + ' (' + dossier.patienteNumero + ')'));
+  grille.appendChild(champ('Consultation', date(dossier.dateConsultation)));
+  grille.appendChild(champ('Motif', dossier.motif));
+  grille.appendChild(champ('Rédigé par', dossier.creePar));
+  corps.appendChild(grille);
+
+  corps.appendChild(champProtege('Diagnostic', dossier.diagnostic));
+  corps.appendChild(champProtege('Traitement', dossier.traitement));
+  corps.appendChild(champProtege('Observations', dossier.observations));
+
+  const trace = el('div', 'info');
+  trace.style.cssText = 'font-size:.75rem;color:var(--slate-light);margin-top:.5rem;';
+  trace.textContent = 'Créé le ' + dateHeure(dossier.creeLe)
+    + (dossier.modifieLe ? ' · modifié le ' + dateHeure(dossier.modifieLe)
+        + ' par ' + dossier.modifiePar : '');
+  corps.appendChild(trace);
+
+  const actions = el('div', 'form-actions');
+  if (peut('dossiersEcrire') && dossier.statut !== 'ARCHIVE') {
+    const modifier = el('button', 'btn btn-outline', 'Modifier');
+    modifier.addEventListener('click', () => formulaireDossier(dossier));
+    actions.appendChild(modifier);
+  }
+  if (peut('archiver') && dossier.statut !== 'ARCHIVE') {
+    const archiver = el('button', 'btn btn-primary', 'Archiver');
+    archiver.addEventListener('click', () => archiverDossier(dossier));
+    actions.appendChild(archiver);
+  }
+  if (actions.children.length > 0) corps.appendChild(actions);
+
+  ouvrirModale('Dossier ' + dossier.numeroDossier, corps);
+}
+
+function detailNeonatal(neonatal) {
+  const corps = el('div');
+
+  const entete = el('div');
+  entete.style.cssText = 'display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;';
+  entete.appendChild(badgeStatut(neonatal.statut));
+  entete.appendChild(badgeIntegrite(neonatal.integre));
+  corps.appendChild(entete);
+
+  const grille = el('div', 'grille-champs');
+  grille.appendChild(champ('Nouveau-né', neonatal.nomBebe));
+  grille.appendChild(champ('Sexe', neonatal.sexe === 'M' ? 'Masculin' : 'Féminin'));
+  grille.appendChild(champ('Naissance', date(neonatal.dateNaissance)));
+  grille.appendChild(champ('Mère', neonatal.mereNom + ' (' + neonatal.mereNumero + ')'));
+  grille.appendChild(champ('Poids', neonatal.poidsGrammes ? neonatal.poidsGrammes + ' g' : null));
+  grille.appendChild(champ('Taille', neonatal.tailleCm ? neonatal.tailleCm + ' cm' : null));
+  grille.appendChild(champ('Score d\'Apgar', neonatal.scoreApgar));
+  grille.appendChild(champ('Rédigé par', neonatal.creePar));
+  corps.appendChild(grille);
+
+  corps.appendChild(champProtege('Diagnostic', neonatal.diagnostic));
+  corps.appendChild(champProtege('Observations', neonatal.observations));
+
+  if (peut('neonatalsEcrire')) {
+    const actions = el('div', 'form-actions');
+    const modifier = el('button', 'btn btn-outline', 'Modifier');
+    modifier.addEventListener('click', () => formulaireNeonatal(neonatal));
+    actions.appendChild(modifier);
+    corps.appendChild(actions);
+  }
+
+  ouvrirModale('Dossier néonatal ' + neonatal.numeroDossier, corps);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Formulaires
+// ─────────────────────────────────────────────────────────────────────────────
+
+function champFormulaire(nom, libelle, options = {}) {
+  const bloc = el('div', 'form-champ' + (options.large ? ' pleine-largeur' : ''));
+  const label = el('label');
+  if (options.protege) {
+    label.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                    + 'stroke-width="2.5">' + ICONE_CADENAS + '</svg>';
+    label.appendChild(el('span', null, libelle + ' (chiffré avant enregistrement)'));
+  } else {
+    label.textContent = libelle;
+  }
+  label.setAttribute('for', 'champ_' + nom);
+  bloc.appendChild(label);
+
+  let saisie;
+  if (options.type === 'textarea') {
+    saisie = el('textarea');
+  } else if (options.type === 'select') {
+    saisie = el('select');
+    (options.options || []).forEach(o => {
+      const opt = el('option', null, o.libelle);
+      opt.value = o.valeur;
+      saisie.appendChild(opt);
+    });
+  } else {
+    saisie = el('input');
+    saisie.type = options.type || 'text';
+  }
+  saisie.id = 'champ_' + nom;
+  saisie.name = nom;
+  if (options.requis) saisie.required = true;
+  if (options.valeur !== undefined && options.valeur !== null) saisie.value = options.valeur;
+  bloc.appendChild(saisie);
+  return bloc;
+}
+
+function valeurs(formulaire) {
+  const resultat = {};
+  new FormData(formulaire).forEach((valeur, cle) => {
+    resultat[cle] = typeof valeur === 'string' && valeur.trim() === '' ? null : valeur;
+  });
+  return resultat;
+}
+
+function construireFormulaire(champs, surSoumission, libelleAction) {
+  const formulaire = el('form');
+  const grille = el('div', 'form-grid');
+  champs.forEach(c => grille.appendChild(c));
+  formulaire.appendChild(grille);
+
+  const erreur = el('div');
+  formulaire.appendChild(erreur);
+
+  const actions = el('div', 'form-actions');
+  const annuler = el('button', 'btn btn-outline', 'Annuler');
+  annuler.type = 'button';
+  annuler.addEventListener('click', fermerModale);
+  const valider = el('button', 'btn btn-primary', libelleAction);
+  valider.type = 'submit';
+  actions.appendChild(annuler);
+  actions.appendChild(valider);
+  formulaire.appendChild(actions);
+
+  formulaire.addEventListener('submit', async e => {
+    e.preventDefault();
+    valider.disabled = true;
+    valider.textContent = 'Enregistrement…';
+    erreur.replaceChildren();
+    try {
+      await surSoumission(valeurs(formulaire));
+      fermerModale();
+      await charger();
+    } catch (err) {
+      const bloc = el('div', 'alerte-ligne erreur');
+      bloc.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                     + 'stroke-width="2">' + ICONE_ALERTE + '</svg>';
+      bloc.appendChild(el('div', null, err.message));
+      erreur.appendChild(bloc);
+      valider.disabled = false;
+      valider.textContent = libelleAction;
+    }
+  });
+
+  return formulaire;
+}
+
+function formulairePatiente(existante) {
+  const p = existante || {};
+  const formulaire = construireFormulaire([
+      champFormulaire('prenom', 'Prénom', { requis: true, valeur: p.prenom }),
+      champFormulaire('nom', 'Nom', { requis: true, valeur: p.nom }),
+      champFormulaire('dateNaissance', 'Date de naissance',
+        { type: 'date', valeur: p.dateNaissance }),
+      champFormulaire('gynecologueAssigne', 'Gynécologue référent (identifiant)',
+        { valeur: p.gynecologueAssigne }),
+      champFormulaire('telephone', 'Téléphone', { protege: true, valeur: p.telephone }),
+      champFormulaire('groupeSanguin', 'Groupe sanguin',
+        { protege: true, valeur: p.groupeSanguin }),
+      champFormulaire('adresse', 'Adresse',
+        { protege: true, large: true, valeur: p.adresse }),
+      champFormulaire('antecedents', 'Antécédents',
+        { protege: true, large: true, type: 'textarea', valeur: p.antecedents })
+    ],
+    async corps => {
+      if (existante) {
+        await NeneCareApi.put('/api/patientes/' + existante.id, corps);
+        message('Fiche patiente mise à jour.', 'succes', ICONE_OK);
+      } else {
+        await NeneCareApi.post('/api/patientes', corps);
+        message('Patiente enregistrée. Coordonnées chiffrées en AES-256-GCM.',
+                'succes', ICONE_OK);
+      }
+    },
+    existante ? 'Enregistrer' : 'Créer la fiche');
+
+  ouvrirModale(existante ? 'Modifier ' + existante.numeroPatiente : 'Nouvelle patiente',
+               formulaire);
+}
+
+async function formulaireDossier(existant) {
+  const d = existant || {};
+  const patientes = await chargerPatientes();
+  if (patientes.length === 0) {
+    message('Aucune patiente enregistrée : la secrétaire doit créer la fiche d\'abord.');
+    return;
+  }
+
+  const champPatiente = champFormulaire('patienteId', 'Patiente', {
+    type: 'select', requis: true, valeur: d.patienteId,
+    options: patientes.map(p => ({
+      valeur: p.id, libelle: p.numeroPatiente + ' — ' + p.prenom + ' ' + p.nom
+    }))
+  });
+
+  const formulaire = construireFormulaire([
+      champPatiente,
+      champFormulaire('dateConsultation', 'Date de consultation',
+        { type: 'date', requis: true,
+          valeur: d.dateConsultation || new Date().toISOString().slice(0, 10) }),
+      champFormulaire('motif', 'Motif de consultation', { large: true, valeur: d.motif }),
+      champFormulaire('diagnostic', 'Diagnostic',
+        { protege: true, large: true, type: 'textarea', valeur: d.diagnostic }),
+      champFormulaire('traitement', 'Traitement',
+        { protege: true, large: true, type: 'textarea', valeur: d.traitement }),
+      champFormulaire('observations', 'Observations',
+        { protege: true, large: true, type: 'textarea', valeur: d.observations })
+    ],
+    async corps => {
+      corps.patienteId = Number(corps.patienteId);
+      if (existant) {
+        await NeneCareApi.put('/api/dossiers/' + existant.id, corps);
+        message('Dossier mis à jour, signature HMAC recalculée.', 'succes', ICONE_OK);
+      } else {
+        await NeneCareApi.post('/api/dossiers', corps);
+        message('Dossier créé : contenu chiffré et signé avant enregistrement.',
+                'succes', ICONE_OK);
+      }
+    },
+    existant ? 'Enregistrer' : 'Créer le dossier');
+
+  ouvrirModale(existant ? 'Modifier ' + existant.numeroDossier : 'Nouveau dossier médical',
+               formulaire);
+}
+
+async function formulaireNeonatal(existant) {
+  const n = existant || {};
+  const patientes = await chargerPatientes();
+  if (patientes.length === 0) {
+    message('Aucune patiente enregistrée : un dossier néonatal doit être rattaché à une mère.');
+    return;
+  }
+
+  const formulaire = construireFormulaire([
+      champFormulaire('mereId', 'Mère (liaison obligatoire)', {
+        type: 'select', requis: true, valeur: n.mereId,
+        options: patientes.map(p => ({
+          valeur: p.id, libelle: p.numeroPatiente + ' — ' + p.prenom + ' ' + p.nom
+        }))
+      }),
+      champFormulaire('nomBebe', 'Nom du nouveau-né', { requis: true, valeur: n.nomBebe }),
+      champFormulaire('sexe', 'Sexe', {
+        type: 'select', valeur: n.sexe,
+        options: [{ valeur: 'F', libelle: 'Féminin' }, { valeur: 'M', libelle: 'Masculin' }]
+      }),
+      champFormulaire('dateNaissance', 'Date de naissance',
+        { type: 'date', requis: true,
+          valeur: n.dateNaissance || new Date().toISOString().slice(0, 10) }),
+      champFormulaire('poidsGrammes', 'Poids (g)', { type: 'number', valeur: n.poidsGrammes }),
+      champFormulaire('tailleCm', 'Taille (cm)', { type: 'number', valeur: n.tailleCm }),
+      champFormulaire('scoreApgar', 'Score d\'Apgar (0-10)',
+        { type: 'number', valeur: n.scoreApgar }),
+      champFormulaire('diagnostic', 'Diagnostic',
+        { protege: true, large: true, type: 'textarea', valeur: n.diagnostic }),
+      champFormulaire('observations', 'Observations',
+        { protege: true, large: true, type: 'textarea', valeur: n.observations })
+    ],
+    async corps => {
+      corps.mereId = Number(corps.mereId);
+      ['poidsGrammes', 'tailleCm', 'scoreApgar'].forEach(cle => {
+        corps[cle] = corps[cle] === null ? null : Number(corps[cle]);
+      });
+      if (existant) {
+        await NeneCareApi.put('/api/neonatals/' + existant.id, corps);
+        message('Dossier néonatal mis à jour.', 'succes', ICONE_OK);
+      } else {
+        await NeneCareApi.post('/api/neonatals', corps);
+        message('Dossier néonatal créé et rattaché à sa mère.', 'succes', ICONE_OK);
+      }
+    },
+    existant ? 'Enregistrer' : 'Créer le dossier');
+
+  ouvrirModale(existant ? 'Modifier ' + existant.numeroDossier : 'Nouveau dossier néonatal',
+               formulaire);
+}
+
+async function archiverDossier(dossier) {
+  try {
+    await NeneCareApi.put('/api/dossiers/' + dossier.id + '/archiver');
+    fermerModale();
+    message('Dossier ' + dossier.numeroDossier + ' archivé. Il reste consultable.',
+            'succes', ICONE_OK);
+    await charger();
+  } catch (err) {
+    message('Archivage impossible : ' + err.message, 'erreur');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Navigation par onglets
+// ─────────────────────────────────────────────────────────────────────────────
+
+function construireOnglets() {
+  const barre = document.getElementById('onglets');
+  barre.replaceChildren();
+  vuesAutorisees.forEach(vue => {
+    const onglet = el('button', 'tab' + (vue.id === vueCourante.id ? ' active' : ''),
+                      vue.libelle);
+    onglet.addEventListener('click', () => allerVers(vue.id));
+    barre.appendChild(onglet);
+  });
+}
+
+function construireActions() {
+  const zone = document.getElementById('actionsEntete');
+  zone.replaceChildren();
+
+  const boutons = [];
+  if (peut('patientesEcrire')) boutons.push(['Nouvelle patiente', () => formulairePatiente()]);
+  if (peut('dossiersEcrire'))  boutons.push(['Nouveau dossier',   () => formulaireDossier()]);
+  if (peut('neonatalsEcrire')) boutons.push(['Nouveau né',        () => formulaireNeonatal()]);
+
+  boutons.forEach(([libelle, action], index) => {
+    const bouton = el('button', 'btn ' + (index === 0 ? 'btn-primary' : 'btn-outline'));
+    bouton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                     + 'stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/>'
+                     + '<line x1="5" y1="12" x2="19" y2="12"/></svg>';
+    bouton.appendChild(el('span', null, libelle));
+    bouton.addEventListener('click', action);
+    zone.appendChild(bouton);
+  });
+}
+
+function allerVers(idVue) {
+  vueCourante = VUES[idVue];
+  window.location.hash = idVue;
+
+  // La barre latérale est montée avant qu'on sache quelle vue s'affiche :
+  // l'onglet actif est donc corrigé ici, sinon « Patientes » resterait
+  // surligné même en consultant les dossiers.
+  document.querySelectorAll('.sidebar .nav-item').forEach(lien =>
+    lien.classList.toggle('active',
+      lien.getAttribute('href') === '/dossiers.html#' + idVue));
+
+  document.getElementById('titrePage').textContent = vueCourante.titre;
+  document.getElementById('sousTitrePage').textContent = vueCourante.sousTitre;
+  document.getElementById('champRecherche').value = '';
+  effacerMessage();
+  construireOnglets();
+  charger();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Démarrage
+// ─────────────────────────────────────────────────────────────────────────────
+
+document.getElementById('champRecherche').addEventListener('input', rendre);
+document.getElementById('btnRafraichir').addEventListener('click', charger);
+
+if (vuesAutorisees.length === 0) {
+  document.getElementById('zoneTableau').replaceChildren(
+    vide("Votre rôle n'a accès à aucun module de dossiers."));
+  document.getElementById('sousTitrePage').textContent = '';
+} else {
+  const demandee = window.location.hash.replace('#', '');
+  const depart = vuesAutorisees.find(v => v.id === demandee) || vuesAutorisees[0];
+  construireActions();
+  allerVers(depart.id);
+}
+</script>
+</body>
+</html>

@@ -54,9 +54,15 @@ public class SecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                // Pages et ressources statiques (frontend Hadja)
+                // Pages et ressources statiques (frontend Hadja).
+                // Ce sont des coquilles vides : elles ne contiennent aucune
+                // donnee, tout passe par des appels API authentifies. Les
+                // proteger n'apporterait rien et empecherait d'afficher un
+                // ecran de connexion propre.
                 .requestMatchers("/", "/index.html", "/login.html", "/accueil.html",
-                                 "/css/**", "/js/**", "/favicon.ico").permitAll()
+                                 "/dossiers.html", "/audit.html",
+                                 "/css/**", "/js/**",
+                                 "/favicon.ico", "/favicon.svg").permitAll()
                 // Console H2 : presente uniquement quand le profil dev l'active
                 .requestMatchers("/h2-console/**").permitAll()
                 // Connexion / deconnexion : necessairement ouvertes

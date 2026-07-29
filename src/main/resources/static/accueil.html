@@ -4,636 +4,60 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeneCare – Accueil</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --teal-deep:   #0d5c63;
-      --teal-mid:    #1a8a8a;
-      --teal-light:  #2ec4b6;
-      --teal-pale:   #e6f7f7;
-      --cream:       #f7f4ef;
-      --white:       #ffffff;
-      --slate:       #374151;
-      --slate-light: #6b7280;
-      --slate-pale:  #f3f4f6;
-      --amber:       #d97706;
-      --amber-pale:  #fffbeb;
-      --red:         #dc2626;
-      --red-pale:    #fef2f2;
-      --green:       #059669;
-      --green-pale:  #ecfdf5;
-      --border:      #e5e7eb;
-      --shadow-sm:   0 1px 3px rgba(0,0,0,.08);
-      --shadow-md:   0 4px 16px rgba(13,92,99,.10);
-    }
-
-    html, body {
-      height: 100%;
-      font-family: 'DM Sans', sans-serif;
-      background: var(--cream);
-      color: var(--slate);
-    }
-
-    /* ── Layout sidebar + main ─────────────────────────────────── */
-    .app { display: flex; min-height: 100vh; }
-
-    /* ── Sidebar ───────────────────────────────────────────────── */
-    .sidebar {
-      width: 240px;
-      flex-shrink: 0;
-      background: var(--teal-deep);
-      display: flex;
-      flex-direction: column;
-      padding: 1.5rem 1rem;
-    }
-
-    .sidebar-logo {
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-      padding: .5rem .75rem 1.5rem;
-      border-bottom: 1px solid rgba(255,255,255,.12);
-      margin-bottom: 1.25rem;
-    }
-    .sidebar-logo-icon {
-      width: 36px; height: 36px;
-      background: rgba(255,255,255,.15);
-      border-radius: 8px;
-      display: grid; place-items: center;
-    }
-    .sidebar-logo-icon svg { width: 18px; height: 18px; }
-    .sidebar-logo-name {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.25rem;
-      color: var(--white);
-    }
-
-    /* Navigation */
-    .nav-section-label {
-      font-size: .65rem;
-      font-weight: 600;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.4);
-      padding: 0 .75rem;
-      margin-bottom: .5rem;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: .65rem;
-      padding: .6rem .75rem;
-      border-radius: 8px;
-      font-size: .875rem;
-      font-weight: 500;
-      color: rgba(255,255,255,.7);
-      text-decoration: none;
-      cursor: pointer;
-      transition: all .15s;
-      border: none;
-      background: none;
-      width: 100%;
-      text-align: left;
-    }
-    .nav-item:hover { background: rgba(255,255,255,.08); color: var(--white); }
-
-    /* Module pas encore livré : l'onglet reste visible (il annonce la feuille
-       de route) mais ne doit pas se faire passer pour un lien fonctionnel. */
-    .nav-item.a-venir {
-      color: rgba(255,255,255,.35);
-      cursor: not-allowed;
-    }
-    .nav-item.a-venir:hover { background: none; color: rgba(255,255,255,.35); }
-    .nav-item.a-venir .puce-a-venir {
-      margin-left: auto;
-      font-size: .6rem;
-      font-weight: 600;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,.4);
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 100px;
-      padding: .1rem .4rem;
-      white-space: nowrap;
-    }
-    .nav-item.active {
-      background: rgba(46,196,182,.2);
-      color: var(--teal-light);
-    }
-    .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-
-    .nav-spacer { flex: 1; }
-
-    /* Profil utilisateur sidebar */
-    .sidebar-user {
-      border-top: 1px solid rgba(255,255,255,.12);
-      padding-top: 1rem;
-      display: flex;
-      align-items: center;
-      gap: .65rem;
-    }
-    .user-avatar {
-      width: 36px; height: 36px;
-      background: var(--teal-light);
-      border-radius: 50%;
-      display: grid; place-items: center;
-      font-size: .9rem;
-      font-weight: 700;
-      color: var(--teal-deep);
-      flex-shrink: 0;
-    }
-    .user-info { flex: 1; min-width: 0; }
-    .user-name {
-      font-size: .82rem;
-      font-weight: 600;
-      color: var(--white);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .user-role {
-      font-size: .7rem;
-      color: rgba(255,255,255,.5);
-    }
-    .logout-btn {
-      background: none; border: none; cursor: pointer;
-      color: rgba(255,255,255,.4);
-      display: flex; align-items: center;
-      transition: color .15s;
-    }
-    .logout-btn:hover { color: var(--white); }
-    .logout-btn svg { width: 16px; height: 16px; }
-
-    /* ── Main ──────────────────────────────────────────────────── */
-    .main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 2rem 2.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 1.75rem;
-    }
-
-    /* Header */
-    .main-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-    .main-header h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.75rem;
-      color: var(--slate);
-    }
-    .main-header p {
-      font-size: .875rem;
-      color: var(--slate-light);
-      margin-top: .2rem;
-    }
-
-    .header-actions { display: flex; gap: .75rem; }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      padding: .6rem 1.1rem;
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: .85rem;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all .15s;
-    }
-    .btn svg { width: 15px; height: 15px; }
-    .btn-primary { background: var(--teal-deep); color: var(--white); }
-    .btn-primary:hover { background: var(--teal-mid); }
-    .btn-outline {
-      background: var(--white);
-      color: var(--slate);
-      border: 1.5px solid var(--border);
-    }
-    .btn-outline:hover { border-color: var(--teal-mid); color: var(--teal-deep); }
-
-    /* ── KPI Cards ─────────────────────────────────────────────── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1rem;
-    }
-
-    .kpi-card {
-      background: var(--white);
-      border-radius: 12px;
-      padding: 1.25rem;
-      box-shadow: var(--shadow-sm);
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: .75rem;
-    }
-    .kpi-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .kpi-label {
-      font-size: .78rem;
-      font-weight: 600;
-      letter-spacing: .03em;
-      text-transform: uppercase;
-      color: var(--slate-light);
-    }
-    .kpi-icon {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      display: grid; place-items: center;
-    }
-    .kpi-icon svg { width: 18px; height: 18px; }
-    .kpi-icon.teal   { background: var(--teal-pale);  color: var(--teal-deep); }
-    .kpi-icon.amber  { background: var(--amber-pale); color: var(--amber); }
-    .kpi-icon.red    { background: var(--red-pale);   color: var(--red); }
-    .kpi-icon.green  { background: var(--green-pale); color: var(--green); }
-
-    .kpi-value {
-      font-family: 'DM Serif Display', serif;
-      font-size: 2rem;
-      color: var(--slate);
-      line-height: 1;
-    }
-    .kpi-sub {
-      font-size: .75rem;
-      color: var(--slate-light);
-    }
-    .kpi-trend {
-      display: inline-flex;
-      align-items: center;
-      gap: .2rem;
-      font-size: .72rem;
-      font-weight: 600;
-      padding: .15rem .45rem;
-      border-radius: 100px;
-    }
-    .kpi-trend.up   { background: var(--green-pale); color: var(--green); }
-    .kpi-trend.warn { background: var(--amber-pale); color: var(--amber); }
-    .kpi-trend.down { background: var(--red-pale);   color: var(--red); }
-
-    /* ── Grid 2 colonnes ────────────────────────────────────────── */
-    .two-col {
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      gap: 1rem;
-      align-items: start;
-    }
-
-    /* ── Card générique ────────────────────────────────────────── */
-    .card {
-      background: var(--white);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-    .card-header {
-      padding: 1.1rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card-title {
-      font-size: .9rem;
-      font-weight: 600;
-      color: var(--slate);
-    }
-    .card-action {
-      font-size: .78rem;
-      color: var(--teal-mid);
-      cursor: pointer;
-      font-weight: 500;
-      text-decoration: none;
-    }
-    .card-action:hover { text-decoration: underline; }
-    .card-body { padding: 1.25rem; }
-
-    /* ── Table des dossiers récents ─────────────────────────────── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th {
-      text-align: left;
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--slate-light);
-      padding: .6rem 1rem;
-      background: var(--slate-pale);
-      border-bottom: 1px solid var(--border);
-    }
-    td {
-      padding: .85rem 1rem;
-      font-size: .85rem;
-      border-bottom: 1px solid var(--border);
-      color: var(--slate);
-    }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--slate-pale); }
-
-    .badge-status {
-      display: inline-flex;
-      align-items: center;
-      gap: .3rem;
-      font-size: .72rem;
-      font-weight: 600;
-      padding: .2rem .6rem;
-      border-radius: 100px;
-    }
-    .badge-status::before {
-      content: '';
-      width: 6px; height: 6px;
-      border-radius: 50%;
-    }
-    .badge-status.active  { background: var(--green-pale);  color: var(--green);  }
-    .badge-status.active::before  { background: var(--green); }
-    .badge-status.pending { background: var(--amber-pale);  color: var(--amber);  }
-    .badge-status.pending::before { background: var(--amber); }
-    .badge-status.closed  { background: var(--slate-pale);  color: var(--slate-light); }
-    .badge-status.closed::before  { background: var(--slate-light); }
-
-    .action-link {
-      color: var(--teal-mid);
-      font-size: .8rem;
-      font-weight: 500;
-      text-decoration: none;
-    }
-    .action-link:hover { text-decoration: underline; }
-
-    /* ── Journal d'audit (sidebar droite) ──────────────────────── */
-    .audit-list { display: flex; flex-direction: column; }
-    .audit-item {
-      display: flex;
-      gap: .75rem;
-      padding: .85rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      align-items: flex-start;
-    }
-    .audit-item:last-child { border-bottom: none; }
-    .audit-dot {
-      width: 28px; height: 28px;
-      border-radius: 50%;
-      display: grid; place-items: center;
-      flex-shrink: 0;
-      margin-top: .1rem;
-    }
-    .audit-dot svg { width: 13px; height: 13px; }
-    .audit-dot.read    { background: var(--teal-pale);  color: var(--teal-deep); }
-    .audit-dot.write   { background: var(--green-pale); color: var(--green); }
-    .audit-dot.login   { background: var(--amber-pale); color: var(--amber); }
-    .audit-dot.warn    { background: var(--red-pale);   color: var(--red); }
-
-    .audit-meta { flex: 1; min-width: 0; }
-    .audit-action {
-      font-size: .82rem;
-      font-weight: 600;
-      color: var(--slate);
-    }
-    .audit-detail {
-      font-size: .76rem;
-      color: var(--slate-light);
-      margin-top: .1rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .audit-time {
-      font-size: .7rem;
-      color: var(--slate-light);
-      white-space: nowrap;
-      flex-shrink: 0;
-    }
-
-    /* ── Alerte sécurité ───────────────────────────────────────── */
-    .security-alert {
-      background: var(--red-pale);
-      border: 1px solid #fca5a5;
-      border-radius: 10px;
-      padding: 1rem 1.25rem;
-      display: flex;
-      gap: .75rem;
-      align-items: flex-start;
-    }
-    .security-alert svg { width: 18px; height: 18px; color: var(--red); flex-shrink: 0; margin-top: .1rem; }
-    .security-alert-title { font-size: .85rem; font-weight: 600; color: var(--red); }
-    .security-alert-desc  { font-size: .78rem; color: #991b1b; margin-top: .15rem; }
-
-    /* ── Responsive ─────────────────────────────────────────────── */
-    @media (max-width: 1100px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .two-col  { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
-      .sidebar  { display: none; }
-      .main     { padding: 1.25rem; }
-      .kpi-grid { grid-template-columns: 1fr 1fr; }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/app.css" />
 </head>
 <body>
 <div class="app">
 
-  <!-- ══ Sidebar ══════════════════════════════════════════════ -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round">
-          <path d="M12 21.593c-5.63-5.539-11-10.297-11-14.402 0-3.791 3.068-5.191 5.281-5.191 1.312 0 4.151.501 5.719 4.457 1.59-3.968 4.464-4.447 5.726-4.447 2.54 0 5.274 1.621 5.274 5.181 0 4.069-5.136 8.625-11 14.402z"/>
-        </svg>
-      </div>
-      <span class="sidebar-logo-name">NeneCare</span>
-    </div>
+  <aside class="sidebar" id="sidebar"></aside>
 
-    <div class="nav-section-label">Navigation</div>
-
-    <a class="nav-item active" href="#">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Tableau de bord
-    </a>
-    <!-- Ces trois modules n'ont pas encore de backend (aucune entité Patiente
-         ni DossierNeonatal, DossierMedicalService vide) : ils sont annoncés,
-         pas proposés. Ils deviendront cliquables avec les US-05 à US-13. -->
-    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Patientes
-      <span class="puce-a-venir">à venir</span>
-    </a>
-    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Dossiers médicaux
-      <span class="puce-a-venir">à venir</span>
-    </a>
-    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      Dossiers néonatals
-      <span class="puce-a-venir">à venir</span>
-    </a>
-
-    <!-- Section réservée à l'administrateur : masquée pour les autres rôles.
-         Masquage de confort uniquement — l'API refuse de toute façon (403). -->
-    <div class="nav-section-label" style="margin-top:1.25rem;" data-role="ADMIN">Administration</div>
-
-    <!-- Fonctionnel : l'API d'audit existe et répond. -->
-    <a class="nav-item" href="#" id="navJournalAudit" data-role="ADMIN">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Journal d'audit
-    </a>
-    <!-- US-18/19 non implémentées : UserService ne contient que des TODO. -->
-    <a class="nav-item a-venir" href="#" aria-disabled="true" data-role="ADMIN"
-       title="Module en cours de développement (US-18, US-19)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
-      Gestion des accès
-      <span class="puce-a-venir">à venir</span>
-    </a>
-
-    <div class="nav-spacer"></div>
-
-    <div class="sidebar-user">
-      <!-- Renseignés par le script à partir de la session ouverte. -->
-      <div class="user-avatar" id="avatarInitials"></div>
-      <div class="user-info">
-        <div class="user-name" id="userName">…</div>
-        <div class="user-role" id="userRole"></div>
-      </div>
-      <button class="logout-btn" id="btnDeconnexion" title="Déconnexion">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
-        </svg>
-      </button>
-    </div>
-  </aside>
-
-  <!-- ══ Main ════════════════════════════════════════════════ -->
   <main class="main">
 
-    <!-- En-tête -->
     <div class="main-header">
       <div>
         <h1>Tableau de bord</h1>
         <p id="dateNow">Chargement de la date…</p>
       </div>
-      <div class="header-actions">
-        <!-- Boutons inactifs tant que le module Dossiers (Amadou) n'est pas livré. -->
-        <button class="btn btn-outline" disabled title="Module dossiers à venir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Rechercher
-        </button>
-        <button class="btn btn-primary" disabled title="Module dossiers à venir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Nouveau dossier
-        </button>
-      </div>
+      <div class="header-actions" id="actionsEntete"></div>
     </div>
 
-    <!-- Alerte sécurité : affichée seulement si le journal contient des échecs -->
+    <!-- Alerte sécurité : affichée seulement s'il y a effectivement des échecs -->
     <div class="security-alert" id="alerteSecurite" style="display:none;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
       <div>
         <div class="security-alert-title" id="alerteSecuriteTitre"></div>
         <div class="security-alert-desc" id="alerteSecuriteDetail"></div>
       </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <span class="kpi-label">Patientes actives</span>
-          <div class="kpi-icon teal">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          </div>
-        </div>
-        <div class="kpi-value" id="kpiPatientes">—</div>
-        <div class="kpi-sub">Module à venir (Amadou)</div>
-      </div>
+    <div class="kpi-grid" id="grilleKpi"></div>
 
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <span class="kpi-label">Dossiers ouverts</span>
-          <div class="kpi-icon amber">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-        </div>
-        <div class="kpi-value" id="kpiDossiers">—</div>
-        <div class="kpi-sub">Module à venir (Amadou)</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <span class="kpi-label">Accès non autorisés</span>
-          <div class="kpi-icon red">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-        </div>
-        <div class="kpi-value" id="kpiEchecs">—</div>
-        <div class="kpi-sub" id="kpiEchecsSub">Journal d'audit</div>
-      </div>
-
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <span class="kpi-label">Intégrité HMAC</span>
-          <div class="kpi-icon green">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-        </div>
-        <div class="kpi-value" id="kpiIntegrite">—</div>
-        <div class="kpi-sub" id="kpiIntegriteSub">Vérification HMAC</div>
-      </div>
-    </div>
-
-    <!-- Grille 2 colonnes -->
     <div class="two-col">
 
-      <!-- Dossiers récents -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Dossiers récents</span>
+          <span class="card-title" id="titreListe">Dossiers récents</span>
+          <a class="card-action" href="/dossiers.html#dossiers" id="lienTousDossiers">Tout voir</a>
         </div>
-        <div class="table-wrap">
-          <!--
-            Aucune donnée factice ici : le module Dossiers (entités Patiente /
-            DossierMedical / DossierNeonatal, US-05 à US-13) n'est pas encore
-            livré. Ce bloc sera branché sur GET /api/dossiers dès sa mise à
-            disposition par Amadou.
-          -->
-          <div style="padding:2rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-                 style="width:32px;height:32px;opacity:.4;margin-bottom:.75rem;">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-            </svg>
-            <div>Module <strong>Dossiers médicaux</strong> en cours de développement.</div>
-            <div style="margin-top:.35rem;font-size:.78rem;">US-05 à US-13 · chiffrement AES-256-GCM avant enregistrement</div>
-          </div>
+        <div class="table-wrap" id="zoneDossiers">
+          <div class="vide">Chargement…</div>
         </div>
       </div>
 
-      <!-- Journal d'audit : alimenté par GET /api/audit/logs (ADMIN uniquement) -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Journal d'audit récent</span>
           <a class="card-action" href="#" id="lienRafraichirAudit">Rafraîchir</a>
         </div>
         <div class="audit-list" id="listeAudit">
-          <div style="padding:1.5rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;">
-            Chargement…
-          </div>
+          <div class="vide">Chargement…</div>
         </div>
       </div>
 
@@ -642,206 +66,287 @@
 </div>
 
 <script src="/js/api.js"></script>
+<script src="/js/shell.js"></script>
 <script>
-  // ==========================================================================
-  // Tableau de bord NeneCare - Propriétaire : Hadja (frontend)
-  //
-  // Rappel : tout ce qui est fait ici est du confort d'affichage. Le contrôle
-  // d'accès réel est côté serveur (JwtAuthFilter + @PreAuthorize) ; masquer un
-  // bouton n'a jamais protégé une donnée.
-  // ==========================================================================
+// =============================================================================
+// Tableau de bord NeneCare - Proprietaire : Hadja (frontend).
+//
+// Tous les chiffres affiches proviennent d'appels API reels : rien n'est
+// code en dur. Un role qui n'a pas acces a un module voit une carte "non
+// accessible" plutot qu'un zero, qui laisserait croire que la clinique n'a
+// aucun dossier.
+// =============================================================================
 
-  // Aucune session ouverte -> retour au login avant même d'afficher la page.
-  if (!NeneCareApi.exigerConnexion()) {
-    throw new Error('Redirection vers la page de connexion');
-  }
+const { el, vide, date, dateHeure } = NeneCareShell;
 
-  const utilisateur = NeneCareApi.getUtilisateur();
-  const estAdmin    = NeneCareApi.aLeRole('ADMIN');
+const utilisateur = NeneCareShell.monter('tableau');
+if (!utilisateur) { throw new Error('Redirection vers la connexion'); }
 
-  // ── Date du jour ──────────────────────────────────────────────────────────
-  document.getElementById('dateNow').textContent =
-    new Date().toLocaleDateString('fr-FR',
-      { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+const DROITS = {
+  patientes : ['ADMIN','GYNECOLOGUE','PEDIATRE','SAGE_FEMME','INFIRMIER','SECRETAIRE'],
+  dossiers  : ['ADMIN','GYNECOLOGUE','SAGE_FEMME','INFIRMIER'],
+  neonatals : ['ADMIN','PEDIATRE','SAGE_FEMME','INFIRMIER'],
+  audit     : ['ADMIN']
+};
+const peut = cle => NeneCareShell.peut(DROITS[cle]);
 
-  // ── Identité de la personne connectée ─────────────────────────────────────
-  const nomAffiche = utilisateur.nomComplet || utilisateur.username;
-  document.getElementById('userName').textContent = nomAffiche;
-  document.getElementById('userRole').textContent = utilisateur.role;
-  document.getElementById('avatarInitials').textContent =
-    nomAffiche.split(/\s+/).filter(Boolean).slice(0, 2)
-              .map(mot => mot[0].toUpperCase()).join('');
+document.getElementById('dateNow').textContent =
+  new Date().toLocaleDateString('fr-FR',
+    { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-  // ── Affichage selon le rôle ───────────────────────────────────────────────
-  document.querySelectorAll('[data-role]').forEach(element => {
-    if (element.dataset.role !== utilisateur.role) {
-      element.style.display = 'none';
-    }
-  });
+// ─────────────────────────────────────────────────────────────────────────────
+// Raccourcis d'en-tête
+// ─────────────────────────────────────────────────────────────────────────────
 
-  // ── Déconnexion (US-03 : le jeton est révoqué côté serveur) ───────────────
-  document.getElementById('btnDeconnexion').addEventListener('click', async () => {
-    await NeneCareApi.logout();
-    window.location.replace('/login.html');
-  });
-
-  // ── Journal d'audit ───────────────────────────────────────────────────────
-
-  const ICONES = {
-    LOGIN_SUCCESS: { classe: 'login', svg: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/>' },
-    LOGOUT:        { classe: 'login', svg: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>' },
-    LOGIN_FAILURE: { classe: 'warn',  svg: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' },
-    LOGIN_BLOCKED: { classe: 'warn',  svg: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
-    DOSSIER_READ:  { classe: 'read',  svg: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
-    DEFAUT:        { classe: 'write', svg: '<polyline points="20 6 9 17 4 12"/>' }
+(function construireActions() {
+  const zone = document.getElementById('actionsEntete');
+  const lien = (libelle, href, style) => {
+    const bouton = el('a', 'btn ' + style, libelle);
+    bouton.href = href;
+    zone.appendChild(bouton);
   };
+  if (peut('patientes')) lien('Patientes', '/dossiers.html#patientes', 'btn-outline');
+  if (peut('dossiers'))  lien('Dossiers médicaux', '/dossiers.html#dossiers', 'btn-primary');
+  else if (peut('neonatals')) lien('Dossiers néonatals', '/dossiers.html#neonatals', 'btn-primary');
+})();
 
-  // Le contenu vient de la base : on passe par textContent, jamais par
-  // innerHTML, pour qu'un champ piégé ne puisse pas injecter de script.
-  function creerElement(balise, classe, texte) {
-    const element = document.createElement(balise);
-    if (classe) element.className = classe;
-    if (texte !== undefined) element.textContent = texte;
-    return element;
+// ─────────────────────────────────────────────────────────────────────────────
+// Cartes de synthèse
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ICONES_KPI = {
+  patientes: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>',
+  dossiers:  '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>',
+  neonatals: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+  securite:  '<polyline points="20 6 9 17 4 12"/>'
+};
+
+function carteKpi(libelle, valeur, sousTitre, icone, couleur) {
+  const carte = el('div', 'kpi-card');
+  const haut = el('div', 'kpi-top');
+  haut.appendChild(el('span', 'kpi-label', libelle));
+  const rond = el('div', 'kpi-icon ' + couleur);
+  rond.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 + 'stroke-width="2">' + ICONES_KPI[icone] + '</svg>';
+  haut.appendChild(rond);
+  carte.appendChild(haut);
+  carte.appendChild(el('div', 'kpi-value', valeur));
+  carte.appendChild(el('div', 'kpi-sub', sousTitre));
+  return carte;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Chargement
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Appelle l'API en rendant la valeur de repli plutôt qu'en cassant la page. */
+async function essayer(url, repli) {
+  try {
+    return await NeneCareApi.get(url) || repli;
+  } catch (err) {
+    return null;   // null = non accessible pour ce rôle
+  }
+}
+
+async function chargerTableauDeBord() {
+  const [patientes, dossiers, neonatals] = await Promise.all([
+    peut('patientes') ? essayer('/api/patientes', []) : Promise.resolve(null),
+    peut('dossiers')  ? essayer('/api/dossiers', [])  : Promise.resolve(null),
+    peut('neonatals') ? essayer('/api/neonatals', []) : Promise.resolve(null)
+  ]);
+
+  const grille = document.getElementById('grilleKpi');
+  grille.replaceChildren();
+
+  grille.appendChild(patientes === null
+    ? carteKpi('Patientes', '—', 'Non accessible pour votre rôle', 'patientes', 'teal')
+    : carteKpi('Patientes suivies', String(patientes.length),
+        'Coordonnées chiffrées AES-256-GCM', 'patientes', 'teal'));
+
+  grille.appendChild(dossiers === null
+    ? carteKpi('Dossiers de suivi', '—', 'Non accessible pour votre rôle', 'dossiers', 'amber')
+    : carteKpi('Dossiers de suivi',
+        String(dossiers.filter(d => d.statut !== 'ARCHIVE').length),
+        dossiers.filter(d => d.statut === 'ARCHIVE').length + ' archivé(s)',
+        'dossiers', 'amber'));
+
+  grille.appendChild(neonatals === null
+    ? carteKpi('Nouveau-nés', '—', 'Non accessible pour votre rôle', 'neonatals', 'green')
+    : carteKpi('Nouveau-nés', String(neonatals.length),
+        'Chacun rattaché à sa mère', 'neonatals', 'green'));
+
+  // Intégrité : calculée sur ce que le rôle a effectivement pu lire.
+  const signes = [].concat(dossiers || [], neonatals || []);
+  if (signes.length === 0) {
+    grille.appendChild(carteKpi('Intégrité HMAC', '—',
+      'Aucun dossier lisible par votre rôle', 'securite', 'green'));
+  } else {
+    const valides = signes.filter(d => d.integre).length;
+    const taux = Math.round((valides / signes.length) * 100);
+    grille.appendChild(carteKpi('Intégrité HMAC', taux + '%',
+      valides === signes.length
+        ? '✓ ' + signes.length + ' signature(s) vérifiée(s)'
+        : '⚠ ' + (signes.length - valides) + ' dossier(s) altéré(s)',
+      'securite', valides === signes.length ? 'green' : 'red'));
   }
 
-  function formaterHeure(horodatage) {
-    const date = new Date(horodatage);
-    if (isNaN(date)) return '';
-    const aujourdhui = new Date().toDateString() === date.toDateString();
-    return aujourdhui
-      ? date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
-      : date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  remplirListe(dossiers, neonatals);
+}
+
+function remplirListe(dossiers, neonatals) {
+  const zone = document.getElementById('zoneDossiers');
+  const titre = document.getElementById('titreListe');
+  const lien = document.getElementById('lienTousDossiers');
+
+  let lignes;
+  if (dossiers !== null && dossiers.length > 0) {
+    titre.textContent = 'Dossiers de suivi récents';
+    lien.href = '/dossiers.html#dossiers';
+    lignes = dossiers.slice(0, 6).map(d => [
+      d.numeroDossier, d.patienteNom, date(d.dateConsultation), d.motif || '—',
+      NeneCareShell.badge(d.integre ? '✓ signé' : '⚠ altéré', d.integre ? 'ok' : 'alerte')
+    ]);
+    afficherTableau(zone, ['N°', 'Patiente', 'Consultation', 'Motif', 'Intégrité'], lignes);
+
+  } else if (neonatals !== null && neonatals.length > 0) {
+    titre.textContent = 'Nouveau-nés récents';
+    lien.href = '/dossiers.html#neonatals';
+    lignes = neonatals.slice(0, 6).map(n => [
+      n.numeroDossier, n.nomBebe, date(n.dateNaissance),
+      n.poidsGrammes ? n.poidsGrammes + ' g' : '—',
+      NeneCareShell.badge(n.integre ? '✓ signé' : '⚠ altéré', n.integre ? 'ok' : 'alerte')
+    ]);
+    afficherTableau(zone, ['N°', 'Nouveau-né', 'Naissance', 'Poids', 'Intégrité'], lignes);
+
+  } else if (dossiers === null && neonatals === null) {
+    titre.textContent = 'Dossiers';
+    lien.href = '/dossiers.html#patientes';
+    zone.replaceChildren(vide(
+      "Votre rôle (" + utilisateur.role + ") n'a pas accès au contenu médical."));
+  } else {
+    zone.replaceChildren(vide('Aucun dossier enregistré pour le moment.'));
   }
+}
 
-  function ligneAudit(entree) {
-    const icone = ICONES[entree.action] || ICONES.DEFAUT;
+function afficherTableau(zone, entetes, lignes) {
+  const table = el('table');
+  const thead = el('thead');
+  const tr = el('tr');
+  entetes.forEach(e => tr.appendChild(el('th', null, e)));
+  thead.appendChild(tr);
+  table.appendChild(thead);
 
-    const item = creerElement('div', 'audit-item');
-
-    const pastille = creerElement('div', 'audit-dot ' + icone.classe);
-    pastille.innerHTML =
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
-      + icone.svg + '</svg>';
-
-    const meta = creerElement('div', 'audit-meta');
-    meta.appendChild(creerElement('div', 'audit-action', entree.action));
-    meta.appendChild(creerElement('div', 'audit-detail',
-      [entree.utilisateur, entree.adresseIp, entree.ressource]
-        .filter(Boolean).join(' · ')));
-
-    item.appendChild(pastille);
-    item.appendChild(meta);
-    item.appendChild(creerElement('div', 'audit-time', formaterHeure(entree.timestamp)));
-    return item;
-  }
-
-  function messageInfo(texte) {
-    const bloc = creerElement('div', null, texte);
-    bloc.style.cssText =
-      'padding:1.5rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;';
-    return bloc;
-  }
-
-  // Le tableau de bord n'affiche qu'un apercu ; la vue "Journal d'audit"
-  // (menu Administration) affiche l'integralite du journal.
-  const APERCU = 8;
-
-  async function chargerAudit(limite = APERCU) {
-    const liste = document.getElementById('listeAudit');
-    liste.replaceChildren();
-
-    // Le journal est réservé à l'administrateur : inutile d'appeler l'API
-    // pour les autres rôles, le serveur répondrait 403.
-    if (!estAdmin) {
-      liste.appendChild(messageInfo(
-        "Le journal d'audit est réservé à l'administrateur."));
-      return;
-    }
-
-    try {
-      const entrees = await NeneCareApi.get('/api/audit/logs');
-
-      if (!entrees || entrees.length === 0) {
-        liste.appendChild(messageInfo('Aucun évènement enregistré pour le moment.'));
-      } else {
-        entrees.slice(0, limite).forEach(entree => liste.appendChild(ligneAudit(entree)));
-        if (entrees.length > limite) {
-          liste.appendChild(messageInfo(
-            (entrees.length - limite) + ' évènement(s) plus ancien(s) — '
-            + "voir « Journal d'audit » dans le menu."));
-        }
-      }
-
-      majKpis(entrees || []);
-
-    } catch (err) {
-      liste.appendChild(messageInfo('Journal indisponible : ' + err.message));
-    }
-  }
-
-  // ── KPIs calculés à partir du journal ─────────────────────────────────────
-  async function majKpis(entrees) {
-    const echecs = entrees.filter(e => e.succes === false);
-    document.getElementById('kpiEchecs').textContent = echecs.length;
-    document.getElementById('kpiEchecsSub').textContent =
-      echecs.length === 0 ? 'Aucun échec enregistré' : 'À vérifier dans le journal';
-
-    // Alerte visible seulement s'il y a effectivement des échecs récents.
-    if (echecs.length > 0) {
-      const dernier = echecs[0];
-      document.getElementById('alerteSecuriteTitre').textContent =
-        echecs.length + ' tentative(s) échouée(s) enregistrée(s)';
-      document.getElementById('alerteSecuriteDetail').textContent =
-        'Dernière : ' + dernier.utilisateur
-        + (dernier.adresseIp ? ' · IP : ' + dernier.adresseIp : '')
-        + ' · ' + new Date(dernier.timestamp).toLocaleString('fr-FR');
-      document.getElementById('alerteSecurite').style.display = 'flex';
-    }
-
-    // Vérification HMAC de l'ensemble du journal (OS-08).
-    try {
-      const integrite = await NeneCareApi.get('/api/audit/integrite');
-      const total = integrite.entrees;
-      const saines = total - integrite.alterees;
-      document.getElementById('kpiIntegrite').textContent =
-        total === 0 ? '—' : Math.round((saines / total) * 100) + '%';
-      document.getElementById('kpiIntegriteSub').textContent =
-        integrite.alterees === 0
-          ? '✓ Aucune altération'
-          : '⚠ ' + integrite.alterees + ' entrée(s) altérée(s)';
-    } catch (err) {
-      document.getElementById('kpiIntegriteSub').textContent = 'Vérification indisponible';
-    }
-  }
-
-  document.getElementById('lienRafraichirAudit').addEventListener('click', (e) => {
-    e.preventDefault();
-    chargerAudit();
-  });
-
-  // ── Navigation ────────────────────────────────────────────────────────────
-
-  // Les onglets sans backend ne doivent rien faire du tout : un clic qui ne
-  // produit aucun effet laisse croire que la page est cassée.
-  document.querySelectorAll('.nav-item.a-venir').forEach(onglet => {
-    onglet.addEventListener('click', e => e.preventDefault());
-  });
-
-  // Journal d'audit : affiche l'intégralité du journal (l'API existe).
-  const navJournal = document.getElementById('navJournalAudit');
-  if (navJournal) {
-    navJournal.addEventListener('click', async (e) => {
-      e.preventDefault();
-      document.querySelectorAll('.nav-item').forEach(o => o.classList.remove('active'));
-      navJournal.classList.add('active');
-      await chargerAudit(Infinity);
-      document.getElementById('listeAudit')
-              .scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const tbody = el('tbody');
+  lignes.forEach(cellules => {
+    const ligne = el('tr');
+    cellules.forEach(cellule => {
+      const td = el('td');
+      if (cellule instanceof Node) td.appendChild(cellule);
+      else td.textContent = cellule;
+      ligne.appendChild(td);
     });
+    tbody.appendChild(ligne);
+  });
+  table.appendChild(tbody);
+  zone.replaceChildren(table);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Journal d'audit (administrateur)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const ICONES_AUDIT = {
+  LOGIN_SUCCESS:   { classe: 'login', svg: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/>' },
+  LOGOUT:          { classe: 'login', svg: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>' },
+  LOGIN_FAILURE:   { classe: 'warn',  svg: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' },
+  LOGIN_BLOCKED:   { classe: 'warn',  svg: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
+  ACCES_REFUSE:    { classe: 'warn',  svg: '<circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>' },
+  ACCES_URGENCE:   { classe: 'warn',  svg: '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>' },
+  DOSSIER_READ:    { classe: 'read',  svg: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
+  NEONATAL_READ:   { classe: 'read',  svg: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
+  PATIENTE_READ:   { classe: 'read',  svg: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
+  DEFAUT:          { classe: 'write', svg: '<polyline points="20 6 9 17 4 12"/>' }
+};
+
+function ligneAudit(entree) {
+  const icone = ICONES_AUDIT[entree.action] || ICONES_AUDIT.DEFAUT;
+  const item = el('div', 'audit-item');
+
+  const pastille = el('div', 'audit-dot ' + icone.classe);
+  pastille.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                     + 'stroke-width="2.5">' + icone.svg + '</svg>';
+
+  const meta = el('div', 'audit-meta');
+  meta.appendChild(el('div', 'audit-action', entree.action));
+  meta.appendChild(el('div', 'audit-detail',
+    [entree.utilisateur, entree.adresseIp, entree.ressource].filter(Boolean).join(' · ')));
+
+  item.appendChild(pastille);
+  item.appendChild(meta);
+  item.appendChild(el('div', 'audit-time', heure(entree.timestamp)));
+  return item;
+}
+
+function heure(horodatage) {
+  const d = new Date(horodatage);
+  if (isNaN(d)) return '';
+  return new Date().toDateString() === d.toDateString()
+    ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+}
+
+const APERCU = 8;
+
+async function chargerAudit() {
+  const liste = document.getElementById('listeAudit');
+  liste.replaceChildren();
+
+  if (!peut('audit')) {
+    liste.replaceChildren(vide("Le journal d'audit est réservé à l'administrateur."));
+    return;
   }
 
+  try {
+    const entrees = await NeneCareApi.get('/api/audit/logs') || [];
+
+    if (entrees.length === 0) {
+      liste.appendChild(vide('Aucun évènement enregistré pour le moment.'));
+    } else {
+      entrees.slice(0, APERCU).forEach(e => liste.appendChild(ligneAudit(e)));
+      if (entrees.length > APERCU) {
+        liste.appendChild(vide((entrees.length - APERCU)
+          + " évènement(s) plus ancien(s) — voir « Journal d'audit »."));
+      }
+    }
+
+    signalerEchecs(entrees);
+
+  } catch (err) {
+    liste.appendChild(vide('Journal indisponible : ' + err.message));
+  }
+}
+
+function signalerEchecs(entrees) {
+  const echecs = entrees.filter(e => e.succes === false);
+  if (echecs.length === 0) return;
+
+  const dernier = echecs[0];
+  document.getElementById('alerteSecuriteTitre').textContent =
+    echecs.length + ' tentative(s) refusée(s) enregistrée(s)';
+  document.getElementById('alerteSecuriteDetail').textContent =
+    'Dernière : ' + dernier.action + ' · ' + dernier.utilisateur
+    + (dernier.adresseIp ? ' · IP ' + dernier.adresseIp : '')
+    + ' · ' + dateHeure(dernier.timestamp);
+  document.getElementById('alerteSecurite').style.display = 'flex';
+}
+
+document.getElementById('lienRafraichirAudit').addEventListener('click', e => {
+  e.preventDefault();
   chargerAudit();
+});
+
+chargerTableauDeBord();
+chargerAudit();
 </script>
 </body>
 </html>

@@ -99,6 +99,31 @@ const NeneCareApi = (() => {
         return requete(url, { method: 'GET' });
     }
 
+    function post(url, corps) {
+        return requete(url, { method: 'POST', body: JSON.stringify(corps) });
+    }
+
+    function put(url, corps) {
+        return requete(url, {
+            method: 'PUT',
+            body: corps === undefined ? undefined : JSON.stringify(corps)
+        });
+    }
+
+    /**
+     * Construit une URL avec ses parametres de requete.
+     * encodeURIComponent est indispensable : un motif d'urgence saisi par un
+     * medecin contient des espaces, des accents et parfois des "&".
+     */
+    function url(base, parametres = {}) {
+        const query = Object.entries(parametres)
+            .filter(([, valeur]) => valeur !== undefined && valeur !== null && valeur !== '')
+            .map(([cle, valeur]) =>
+                encodeURIComponent(cle) + '=' + encodeURIComponent(valeur))
+            .join('&');
+        return query ? base + '?' + query : base;
+    }
+
     // -------------------------------------------------------------------------
     // Authentification
     // -------------------------------------------------------------------------
@@ -125,6 +150,6 @@ const NeneCareApi = (() => {
     return {
         getToken, getUtilisateur, estConnecte, aLeRole,
         exigerConnexion, viderSession,
-        requete, get, login, logout
+        requete, get, post, put, url, login, logout
     };
 })();

@@ -41,13 +41,15 @@ utilise une base **H2 en mémoire** créée au lancement :
 - Application : <http://localhost:8081> (redirige vers la connexion)
 - Console base : <http://localhost:8081/h2-console> (JDBC `jdbc:h2:mem:nenecare`, user `sa`)
 
-Six **comptes de démonstration** sont créés au démarrage, un par rôle
-(mot de passe commun : `NeneCare2026!`) :
+Sept **comptes de démonstration** sont créés au démarrage, un par rôle (deux
+gynécologues, pour pouvoir démontrer le cloisonnement DAC) — mot de passe
+commun : `NeneCare2026!` :
 
 | Identifiant | Rôle | Voit le journal d'audit |
 |---|---|---|
 | `admin` | ADMIN | ✅ |
 | `gyneco` | GYNECOLOGUE | ❌ (403) |
+| `gyneco2` | GYNECOLOGUE | ❌ (403) |
 | `pediatre` | PEDIATRE | ❌ |
 | `sagefemme` | SAGE_FEMME | ❌ |
 | `infirmier` | INFIRMIER | ❌ |
@@ -55,6 +57,13 @@ Six **comptes de démonstration** sont créés au démarrage, un par rôle
 
 > ⚠️ Ces comptes n'existent **que** si `nenecare.demo.enabled=true` — donc uniquement
 > dans le profil `dev`. La base est vidée à chaque arrêt de l'application.
+
+Un jeu de données est chargé avec les comptes : 4 patientes, 3 dossiers de suivi
+et 2 dossiers néonatals, tous **créés via les vrais services métier** (donc
+chiffrés AES-256-GCM, signés HMAC-SHA256 et audités comme une saisie réelle) —
+voir `config/DossiersDemoInitializer.java`. De quoi montrer immédiatement le
+chiffrement au repos, le DAC (`gyneco` / `gyneco2` ne voient pas les mêmes
+patientes), la liaison mère-enfant et le journal d'audit.
 
 ### 3.2 Démarrage sur PostgreSQL (configuration par défaut)
 
@@ -205,11 +214,15 @@ Détails complets dans **[CONTRIBUTING.md](CONTRIBUTING.md)**. L'essentiel :
 | Filtre JWT branché dans Security | — | ✅ fait |
 | RBAC sur le journal d'audit (`ADMIN` seul) | OS-05 | ✅ fait |
 | Frontend login + accueil branchés sur l'API | — | ✅ fait |
-| Suite de tests (39 tests, `./mvnw test`) | — | ✅ fait |
-| Entités Patiente / DossierMedical / DossierNeonatal + liaison | US-05→13, OS-06 | 🔲 à faire (Amadou) |
-| CRUD dossiers chiffrés + endpoints REST | US-07/08 | 🔲 à faire (Amadou) |
-| RBAC `@PreAuthorize` sur les endpoints dossiers | OS-05 | 🔲 à faire (avec les dossiers) |
-| Écrans dossiers / patientes | — | 🔲 à faire (Hadja) |
+| Entités Patiente / DossierMedical / DossierNeonatal + liaison mère-enfant | US-05→13, OS-06 | ✅ fait |
+| CRUD dossiers chiffrés AES-256-GCM + endpoints REST | US-07/08 | ✅ fait |
+| Signature HMAC des dossiers, vérifiée à chaque lecture | OS-07 | ✅ fait |
+| RBAC `@PreAuthorize` sur tous les endpoints métier | OS-05 | ✅ fait |
+| DAC : un gynécologue ne voit que ses patientes | US-07 | ✅ fait |
+| Accès d'urgence motivé et tracé (« bris de glace ») | US-14 | ✅ fait |
+| Archivage d'un dossier (jamais de suppression) | US-09 | ✅ fait |
+| Écrans patientes / dossiers / néonatals / journal d'audit | — | ✅ fait |
+| Suite de tests portée à 58 tests | — | ✅ fait |
 | Gestion des comptes (création, révocation) | US-18/19 | 🔲 à faire (Halima) |
 
 Légende : ✅ fait · 🟡 amorcé (stub) · 🔲 à faire.

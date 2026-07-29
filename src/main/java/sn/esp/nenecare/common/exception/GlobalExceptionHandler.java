@@ -74,6 +74,12 @@ public class GlobalExceptionHandler {
         return construire(HttpStatus.BAD_REQUEST, "Requete invalide", ex.getMessage());
     }
 
+    /** Ressource metier demandee mais inexistante (patiente, dossier). */
+    @ExceptionHandler(RessourceIntrouvableException.class)
+    public ResponseEntity<ApiError> handleRessourceIntrouvable(RessourceIntrouvableException ex) {
+        return construire(HttpStatus.NOT_FOUND, "Introuvable", ex.getMessage());
+    }
+
     /** Ressource statique ou endpoint inexistant : 404, pas 500. */
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiError> handleIntrouvable(NoResourceFoundException ex) {

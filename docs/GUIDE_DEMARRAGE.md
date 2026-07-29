@@ -25,7 +25,10 @@ le frontend), le profil `dev` crée une base H2 en mémoire toute seule :
 Puis ouvre <http://localhost:8081> et connecte-toi avec un des comptes créés
 automatiquement (mot de passe commun `NeneCare2026!`) :
 
-`admin` · `gyneco` · `pediatre` · `sagefemme` · `infirmier` · `secretaire`
+`admin` · `gyneco` · `gyneco2` · `pediatre` · `sagefemme` · `infirmier` · `secretaire`
+
+(`gyneco` et `gyneco2` existent tous les deux pour pouvoir démontrer le DAC :
+chacun ne voit que ses propres patientes, voir section 3 ci-dessous.)
 
 Seul `admin` a accès au journal d'audit — les autres reçoivent un 403, c'est voulu.
 
@@ -108,13 +111,17 @@ Quand tu ouvres http://localhost:8081/login.html, tu vois la **page de connexion
 (logo NeneCare, champs identifiant + mot de passe, bouton « Se connecter »). Après une
 connexion réussie, l'utilisateur est redirigé vers la page d'accueil `index.html`.
 
-**Où sont tes fichiers**
+**Où sont les fichiers**
 ```
 src/main/resources/static/
-├── login.html        → page de connexion (déjà fonctionnelle, à finaliser)
-├── index.html        → page d'accueil après connexion
-├── css/style.css     → tout le style (couleurs, mise en page)
-└── js/api.js         → helper d'appel à l'API (objet NeneCareApi)
+├── login.html         → page de connexion
+├── accueil.html       → tableau de bord (KPIs + audit récent, adapté au rôle)
+├── dossiers.html      → patientes / dossiers médicaux / dossiers néonatals (US-05→14)
+├── audit.html         → journal d'audit complet (ADMIN uniquement)
+├── css/app.css        → style partagé par accueil/dossiers/audit
+└── js/
+    ├── api.js         → helper d'appel à l'API (objet NeneCareApi : get/post/put/login/logout)
+    └── shell.js        → barre latérale + navigation adaptée au rôle (NeneCareShell)
 ```
 
 **Comment travailler**
@@ -175,31 +182,37 @@ curl -X POST http://localhost:8081/api/auth/login \
 
 ### 🗂️ Amadou — Dev Backend Dossiers & Chiffrement
 
-**Ce qui s'affiche par défaut**
-Pas d'écran : tu exposes des endpoints REST (`/api/dossiers...`) testés via curl/Postman.
+**État : fait.** Entités, chiffrement, DAC, liaison mère-enfant et endpoints REST
+sont en place et testés (`patient/`, 19 tests dans `DossiersIT`).
 
-**Où sont tes fichiers**
+**Où sont les fichiers**
 ```
 src/main/java/sn/esp/nenecare/
 ├── patient/
-│   ├── model/DossierMedical.java          → entité dossier mère (à compléter)
-│   │                                         + créer Patiente.java, DossierNeonatal.java
-│   ├── repository/DossierMedicalRepository.java
-│   ├── service/DossierMedicalService.java → CRUD + chiffrement
-│   └── controller/                        → endpoints REST (à créer)
-└── crypto/
-    ├── AesGcmService.java                 → chiffrement AES-256-GCM (prêt)
-    └── HmacService.java                   → signature d'intégrité HMAC (prêt)
+│   ├── model/       Patiente, DossierMedical, DossierNeonatal (liaison @ManyToOne), StatutDossier
+│   ├── repository/  requêtes filtrées par gynécologue référent (DAC)
+│   ├── dto/         Request/Response par entité
+│   ├── service/      PatienteService, DossierMedicalService, DossierNeonatalService,
+│   │                 ControleAccesDossier (DAC + accès d'urgence US-14)
+│   └── controller/  /api/patientes, /api/dossiers, /api/neonatals
+├── crypto/
+│   ├── AesGcmService.java, HmacService.java   → algorithmes
+│   └── ProtectionDonneesService.java          → porte les clés, valide leur taille au démarrage
 ```
 
-**Comment travailler**
-- **Chiffrer** les champs médicaux sensibles avec `AesGcmService.encrypt(...)` **avant** `save`,
-  et `decrypt(...)` après lecture — jamais de donnée médicale en clair en base.
-- **Intégrité** : `HmacService.sign(...)` à la création, `verify(...)` à la lecture.
-- **DAC** : un gynécologue ne voit que ses patientes
-  (`DossierMedicalRepository.findByGynecologueAssigne`).
-- **Liaison mère-enfant** : relier `DossierNeonatal` au `DossierMedical` de la mère
-  (`@ManyToOne` / `@OneToOne`).
+**Ce qui est appliqué**
+- Chiffrement AES-256-GCM des champs médicaux **avant** `save`, déchiffrement après
+  lecture — jamais de clair en base (vérifiable directement en SQL).
+- Signature HMAC-SHA256 recalculée à chaque écriture, revérifiée à chaque lecture ;
+  une entrée modifiée hors de l'application est signalée (`integre: false`) sans
+  bloquer la consultation.
+- **DAC** : un gynécologue ne voit que les patientes dont il est le référent
+  (`findByGynecologueAssigneOrderByNomAsc` / filtre poussé en SQL).
+- **Accès d'urgence (US-14)** : dérogation possible avec un motif obligatoire,
+  toujours tracée dans le journal d'audit (`ACCES_URGENCE`).
+- **Liaison mère-enfant (OS-06)** : `DossierNeonatal.mere` est `@ManyToOne(optional=false)`
+  et fait partie du message signé — impossible de rattacher discrètement un
+  dossier à une autre mère sans casser la signature.
 
 ---
 
