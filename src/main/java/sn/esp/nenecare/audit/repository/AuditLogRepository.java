@@ -8,8 +8,20 @@ import org.springframework.stereotype.Repository;
 
 import sn.esp.nenecare.audit.model.AuditLog;
 
+/**
+ * Acces au journal d'audit.
+ *
+ * Uniquement des lectures et des insertions : aucune methode de modification
+ * ni de suppression n'est exposee, pour preserver la valeur probante du
+ * journal (OS-08).
+ *
+ * Proprietaire : Hadja (audit).
+ */
 @Repository
 public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+
+    /** Journal complet, evenement le plus recent en premier. */
+    List<AuditLog> findAllByOrderByTimestampDesc();
 
     List<AuditLog> findByUtilisateur(String utilisateur);
 
@@ -23,4 +35,8 @@ public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
     List<AuditLog> findBySucces(Boolean succes);
 
     List<AuditLog> findByRole(String role);
+
+    /** Echecs recents d'un identifiant : detection de force brute (US-04). */
+    List<AuditLog> findByUtilisateurAndActionAndTimestampAfter(
+        String utilisateur, String action, LocalDateTime depuis);
 }

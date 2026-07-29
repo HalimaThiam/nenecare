@@ -1,5 +1,7 @@
 package sn.esp.nenecare.crypto;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -25,14 +27,28 @@ public class HmacService {
             Base64.getDecoder().decode(secretKey), ALGORITHM);
         Mac mac = Mac.getInstance(ALGORITHM, "BC");
         mac.init(keySpec);
-        byte[] signature = mac.doFinal(data.getBytes());
+        // Encodage explicite : sans cela la signature dependrait du charset par
+        // defaut de la machine et ne serait pas reproductible d'un poste a l'autre.
+        byte[] signature = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
         return Base64.getEncoder().encodeToString(signature);
     }
 
-    /** Verifie l'integrite : recalcule la signature et la compare. */
+    /**
+     * Verifie l'integrite : recalcule la signature et la compare.
+     *
+     * La comparaison passe par MessageDigest.isEqual, qui parcourt toujours
+     * l'ensemble des octets. Un equals() classique s'arrete au premier octet
+     * different : le temps de reponse permettrait alors de reconstituer une
+     * signature valide octet par octet.
+     */
     public boolean verify(String data, String secretKey, String expectedSignature) throws Exception {
+        if (expectedSignature == null) {
+            return false;
+        }
         String actualSignature = sign(data, secretKey);
-        return actualSignature.equals(expectedSignature);
+        return MessageDigest.isEqual(
+            actualSignature.getBytes(StandardCharsets.UTF_8),
+            expectedSignature.getBytes(StandardCharsets.UTF_8));
     }
 
     /** Genere une cle HMAC aleatoire (256 bits, Base64). */

@@ -1,110 +1,93 @@
 -- =============================================================================
--- NeneCare – Schéma de la table audit_log
--- Sprint Alpha – feature/audit
+-- NeneCare - Schema de reference de la table audit_log
+-- Sprint Alpha - feature/audit
 -- Responsable : Hadja Mariama DIALLO
 -- =============================================================================
 --
--- Table entièrement isolée : aucune clé étrangère vers les tables métier.
--- Cela garantit que le journal subsiste même si une entité métier est supprimée,
--- et empêche toute cascade accidentelle.
+-- ATTENTION - ETAT ACTUEL :
+-- Flyway n'est pas encore branche sur le projet. Aujourd'hui c'est Hibernate
+-- qui cree la table (spring.jpa.hibernate.ddl-auto=update) a partir de
+-- l'entite sn.esp.nenecare.audit.model.AuditLog.
 --
--- Les permissions PostgreSQL sont restreintes :
---   - L'application (rôle nenecare_app)  → INSERT + SELECT uniquement
---   - L'administrateur DBA               → SELECT uniquement (audit externe)
---   - Personne                           → UPDATE / DELETE interdits
+-- Ce fichier a donc deux usages :
+--   1. documenter le schema cible et les contraintes de securite attendues ;
+--   2. servir de migration prete a l'emploi le jour ou l'equipe ajoute Flyway
+--      (ajouter flyway-core au pom.xml et passer ddl-auto a "validate").
+--
+-- Les colonnes ci-dessous correspondent EXACTEMENT a l'entite JPA actuelle.
+-- Toute evolution de l'entite doit etre repercutee ici.
+--
+-- Table entierement isolee : aucune cle etrangere vers les tables metier.
+-- Le journal subsiste donc meme si une entite metier est supprimee, et aucune
+-- cascade ne peut l'effacer accidentellement.
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS audit_log (
-    -- -------------------------------------------------------------------------
     -- Identifiant
-    -- -------------------------------------------------------------------------
     id              BIGSERIAL       PRIMARY KEY,
 
-    -- -------------------------------------------------------------------------
-    -- Acteur
-    -- -------------------------------------------------------------------------
-    actor_id        VARCHAR(64)     NOT NULL,
-    actor_role      VARCHAR(32)     NOT NULL,
+    -- Horodatage de l'evenement
+    timestamp       TIMESTAMP       NOT NULL,
 
-    -- -------------------------------------------------------------------------
-    -- Action
-    -- -------------------------------------------------------------------------
-    action          VARCHAR(64)     NOT NULL
-                        CHECK (action IN (
-                            'LOGIN_SUCCESS', 'LOGIN_FAILURE', 'LOGOUT',
-                            'DOSSIER_CREATE', 'DOSSIER_READ',
-                            'DOSSIER_UPDATE', 'DOSSIER_DELETE',
-                            'PATIENTE_CREATE', 'PATIENTE_READ',
-                            'PATIENTE_UPDATE', 'PATIENTE_DELETE',
-                            'USER_CREATE', 'USER_REVOKE',
-                            'KEY_EXCHANGE', 'ACCESS_DENIED'
-                        )),
+    -- Qui a agi
+    utilisateur     VARCHAR(100)    NOT NULL,
+    role            VARCHAR(50)     NOT NULL,
 
-    -- -------------------------------------------------------------------------
-    -- Ressource cible
-    -- -------------------------------------------------------------------------
-    resource_type   VARCHAR(64),    -- PATIENTE, DOSSIER_MEDICAL, DOSSIER_NEONATAL…
-    resource_id     VARCHAR(64),    -- PK de la ressource cible
+    -- Quelle action
+    -- Exemples : LOGIN_SUCCESS, LOGIN_FAILURE, LOGIN_BLOCKED, LOGOUT,
+    --            DOSSIER_CREATE, DOSSIER_READ, DOSSIER_UPDATE, DOSSIER_DELETE,
+    --            USER_CREATE, USER_REVOKE, ACCESS_DENIED
+    action          VARCHAR(100)    NOT NULL,
 
-    -- -------------------------------------------------------------------------
+    -- Sur quelle ressource (nullable : une connexion ne cible rien)
+    ressource       VARCHAR(200),
+
     -- Contexte
-    -- -------------------------------------------------------------------------
-    ip_address      VARCHAR(45),    -- IPv4 ou IPv6
-    details         TEXT,           -- JSON ou texte libre, SANS données sensibles
+    details         TEXT,           -- texte libre, SANS donnees medicales
+    adresse_ip      VARCHAR(45),    -- IPv4 ou IPv6
+    succes          BOOLEAN         NOT NULL,
 
-    -- -------------------------------------------------------------------------
-    -- Horodatage UTC
-    -- -------------------------------------------------------------------------
-    timestamp       TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
-
-    -- -------------------------------------------------------------------------
-    -- Intégrité – HMAC-SHA256 (Base64, 44 caractères)
-    -- -------------------------------------------------------------------------
-    hmac_signature  CHAR(44)        NOT NULL
+    -- Integrite - HMAC-SHA256 encode en Base64
+    signature_hmac  VARCHAR(500)    NOT NULL
 );
 
 -- =============================================================================
 -- Index
 -- =============================================================================
-CREATE INDEX IF NOT EXISTS idx_audit_actor
-    ON audit_log (actor_id);
+CREATE INDEX IF NOT EXISTS idx_audit_utilisateur ON audit_log (utilisateur);
+CREATE INDEX IF NOT EXISTS idx_audit_action      ON audit_log (action);
+CREATE INDEX IF NOT EXISTS idx_audit_timestamp   ON audit_log (timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_succes      ON audit_log (succes);
 
-CREATE INDEX IF NOT EXISTS idx_audit_action
-    ON audit_log (action);
-
-CREATE INDEX IF NOT EXISTS idx_audit_resource
-    ON audit_log (resource_type, resource_id);
-
-CREATE INDEX IF NOT EXISTS idx_audit_timestamp
-    ON audit_log (timestamp DESC);
-
--- Index composite pour les requêtes de sécurité (ex : brute-force detection)
-CREATE INDEX IF NOT EXISTS idx_audit_actor_action_ts
-    ON audit_log (actor_id, action, timestamp DESC);
+-- Index composite pour la detection de force brute (US-04)
+CREATE INDEX IF NOT EXISTS idx_audit_util_action_ts
+    ON audit_log (utilisateur, action, timestamp DESC);
 
 -- =============================================================================
--- Sécurité : restriction des permissions sur la table
+-- Securite : restriction des permissions sur la table
 -- =============================================================================
--- Révoquer tous les droits par défaut
-REVOKE ALL ON audit_log FROM PUBLIC;
-
--- L'application ne peut qu'insérer et lire
-GRANT INSERT, SELECT ON audit_log TO nenecare_app;
-GRANT USAGE, SELECT ON SEQUENCE audit_log_id_seq TO nenecare_app;
-
--- L'administrateur d'audit ne peut que lire
--- GRANT SELECT ON audit_log TO nenecare_audit_reader;
+-- A executer manuellement par le DBA apres creation du role applicatif.
+-- Ces instructions sont commentees car elles echouent tant que les roles
+-- nenecare_app / nenecare_audit_reader n'existent pas sur l'instance :
+--
+--   REVOKE ALL ON audit_log FROM PUBLIC;
+--   GRANT INSERT, SELECT ON audit_log TO nenecare_app;
+--   GRANT USAGE, SELECT ON SEQUENCE audit_log_id_seq TO nenecare_app;
+--   -- Auditeur externe, lecture seule :
+--   -- GRANT SELECT ON audit_log TO nenecare_audit_reader;
+--
+-- L'application n'a alors ni UPDATE ni DELETE : meme un compte applicatif
+-- compromis ne peut pas effacer ses propres traces.
 
 -- =============================================================================
--- Commentaires de documentation
+-- Documentation
 -- =============================================================================
-COMMENT ON TABLE  audit_log              IS 'Journal d''audit immuable – NeneCare DevSecOps M1-SSI';
-COMMENT ON COLUMN audit_log.actor_id     IS 'Identifiant de l''utilisateur ayant effectué l''action';
-COMMENT ON COLUMN audit_log.actor_role   IS 'Rôle au moment de l''action : MEDECIN | SAGE_FEMME | ADMIN';
-COMMENT ON COLUMN audit_log.action       IS 'Code d''action normalisé (liste fermée via CHECK)';
-COMMENT ON COLUMN audit_log.resource_type IS 'Type de la ressource cible';
-COMMENT ON COLUMN audit_log.resource_id  IS 'Identifiant de la ressource cible (nullable pour LOGIN)';
-COMMENT ON COLUMN audit_log.ip_address   IS 'Adresse IP de l''acteur (IPv4 ou IPv6)';
-COMMENT ON COLUMN audit_log.details      IS 'Détails libres (JSON) – ne jamais stocker de données médicales';
-COMMENT ON COLUMN audit_log.timestamp    IS 'Horodatage UTC de l''événement';
-COMMENT ON COLUMN audit_log.hmac_signature IS 'HMAC-SHA256 Base64 sur tous les champs – garantit l''intégrité';
+COMMENT ON TABLE  audit_log                IS 'Journal d''audit - NeneCare DevSecOps M1-SSI';
+COMMENT ON COLUMN audit_log.utilisateur    IS 'Identifiant de l''utilisateur ayant effectue l''action';
+COMMENT ON COLUMN audit_log.role           IS 'Role au moment de l''action (RBAC)';
+COMMENT ON COLUMN audit_log.action         IS 'Code d''action normalise';
+COMMENT ON COLUMN audit_log.ressource      IS 'Ressource ciblee (nullable pour les connexions)';
+COMMENT ON COLUMN audit_log.details        IS 'Details libres - ne jamais stocker de donnees medicales';
+COMMENT ON COLUMN audit_log.adresse_ip     IS 'Adresse IP de l''acteur (IPv4 ou IPv6)';
+COMMENT ON COLUMN audit_log.succes         IS 'Issue de l''action : true = reussie, false = refusee/echouee';
+COMMENT ON COLUMN audit_log.signature_hmac IS 'HMAC-SHA256 Base64 des champs signes - garantit l''integrite';
