@@ -8,8 +8,38 @@ lance le projet, et où se trouve son travail. À lire avant de commencer.
 ## 0. Pré-requis (tout le monde)
 
 - **JDK 17** installé → `java -version` doit afficher `17.x`
-- **PostgreSQL** installé et démarré
+- **PostgreSQL** installé et démarré *(inutile si tu utilises le raccourci ci-dessous)*
 - **Git**
+
+---
+
+## 0 bis. Le raccourci : lancer sans installer PostgreSQL
+
+Si tu veux juste **voir tourner l'application** (démo, test d'un endpoint, travail sur
+le frontend), le profil `dev` crée une base H2 en mémoire toute seule :
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+Puis ouvre <http://localhost:8081> et connecte-toi avec un des comptes créés
+automatiquement (mot de passe commun `NeneCare2026!`) :
+
+`admin` · `gyneco` · `pediatre` · `sagefemme` · `infirmier` · `secretaire`
+
+Seul `admin` a accès au journal d'audit — les autres reçoivent un 403, c'est voulu.
+
+> La base disparaît à l'arrêt de l'application. Pour conserver tes données entre deux
+> lancements, passe à PostgreSQL (section 1).
+
+### Vérifier que tout marche, en ligne de commande
+
+```bash
+curl -s -X POST http://localhost:8081/api/auth/login -H 'Content-Type: application/json' -d '{"username":"admin","motDePasse":"NeneCare2026!"}'
+```
+
+La réponse contient un `token` : réutilise-le en en-tête `Authorization: Bearer <token>`
+pour appeler les endpoints protégés, par exemple `GET /api/audit/logs`.
 
 ---
 

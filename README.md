@@ -27,7 +27,36 @@ Responsable : Prof. Doudou FALL
 
 ---
 
-## 3. Démarrage (identique pour tous les membres)
+## 3. Démarrage
+
+### 3.1 Démarrage rapide (aucune installation de base de données)
+
+Pour tester l'application, faire une démo ou développer le frontend, le profil `dev`
+utilise une base **H2 en mémoire** créée au lancement :
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+- Application : <http://localhost:8081> (redirige vers la connexion)
+- Console base : <http://localhost:8081/h2-console> (JDBC `jdbc:h2:mem:nenecare`, user `sa`)
+
+Six **comptes de démonstration** sont créés au démarrage, un par rôle
+(mot de passe commun : `NeneCare2026!`) :
+
+| Identifiant | Rôle | Voit le journal d'audit |
+|---|---|---|
+| `admin` | ADMIN | ✅ |
+| `gyneco` | GYNECOLOGUE | ❌ (403) |
+| `pediatre` | PEDIATRE | ❌ |
+| `sagefemme` | SAGE_FEMME | ❌ |
+| `infirmier` | INFIRMIER | ❌ |
+| `secretaire` | SECRETAIRE | ❌ |
+
+> ⚠️ Ces comptes n'existent **que** si `nenecare.demo.enabled=true` — donc uniquement
+> dans le profil `dev`. La base est vidée à chaque arrêt de l'application.
+
+### 3.2 Démarrage sur PostgreSQL (configuration par défaut)
 
 > **Prérequis : JDK 17** (`java -version` → 17.x), **PostgreSQL**, **Git**.
 > ⚠️ Si ta machine a une autre version de Java (ex. 21/26), installe le JDK 17 pour rester
@@ -46,7 +75,8 @@ git checkout -b feature/<ton-domaine>     # ex: feature/auth
 # 3. Configurer les secrets (au choix : variables d'env OU fichier local)
 export DB_USERNAME=postgres
 export DB_PASSWORD=ton_mot_de_passe
-export JWT_SECRET=un-secret-de-32-caracteres-minimum
+export JWT_SECRET=un-secret-de-32-caracteres-minimum        # >= 32 caractères, sinon l'app refuse de démarrer
+export AUDIT_HMAC_KEY=$(openssl rand -base64 32)            # clé de signature du journal d'audit
 #   (alternative : copier src/main/resources/application-local.properties.example
 #    en application-local.properties — ce fichier est ignoré par git)
 
@@ -165,17 +195,36 @@ Détails complets dans **[CONTRIBUTING.md](CONTRIBUTING.md)**. L'essentiel :
 | Fonctionnalité | US / OS | Statut |
 |---|---|---|
 | Socle Spring Boot + structure packages | — | ✅ fait |
-| Sécurité de base (bcrypt, SecurityConfig, @EnableMethodSecurity) | OS-12 | ✅ fait |
-| Crypto AES-256-GCM + HMAC | OS-03 / OS-07 | ✅ services prêts |
-| Journal d'audit signé (consultation) | US-16/17, OS-08 | ✅ fait |
-| Frontend login + accueil | — | 🟡 squelette |
-| `POST /api/auth/login` (JWT) | US-01 | 🟡 stub à finaliser |
-| `POST /api/auth/logout` (révocation) | US-03 | 🟡 stub à finaliser |
-| Blocage après 5 échecs | US-04 | 🟡 stub à finaliser |
-| Filtre JWT branché dans Security | — | 🔲 à faire (Halima) |
-| RBAC `@PreAuthorize` sur les endpoints | OS-05 | 🔲 à faire |
+| Sécurité de base (bcrypt coût 12, `@EnableMethodSecurity`) | OS-12 | ✅ fait |
+| Crypto AES-256-GCM + HMAC | OS-03 / OS-07 | ✅ services prêts + testés |
+| Journal d'audit signé (écriture, consultation, vérification) | US-16/17, OS-08 | ✅ fait |
+| `POST /api/auth/login` (JWT + audit) | US-01 | ✅ fait |
+| `POST /api/auth/logout` (révocation par `jti`) | US-03 | ✅ fait |
+| Expiration du jeton à 30 min | US-02 | ✅ fait |
+| Blocage après 5 échecs, fenêtre de 15 min | US-04 | ✅ fait |
+| Filtre JWT branché dans Security | — | ✅ fait |
+| RBAC sur le journal d'audit (`ADMIN` seul) | OS-05 | ✅ fait |
+| Frontend login + accueil branchés sur l'API | — | ✅ fait |
+| Suite de tests (39 tests, `./mvnw test`) | — | ✅ fait |
 | Entités Patiente / DossierMedical / DossierNeonatal + liaison | US-05→13, OS-06 | 🔲 à faire (Amadou) |
 | CRUD dossiers chiffrés + endpoints REST | US-07/08 | 🔲 à faire (Amadou) |
-| Accueil selon le rôle + tests endpoints | — | 🔲 à faire (Hadja) |
+| RBAC `@PreAuthorize` sur les endpoints dossiers | OS-05 | 🔲 à faire (avec les dossiers) |
+| Écrans dossiers / patientes | — | 🔲 à faire (Hadja) |
+| Gestion des comptes (création, révocation) | US-18/19 | 🔲 à faire (Halima) |
 
 Légende : ✅ fait · 🟡 amorcé (stub) · 🔲 à faire.
+
+### Reste à durcir (phase sécurité)
+
+Ces points sont identifiés et **volontairement** repoussés à la passe suivante :
+
+| Sujet | À faire |
+|---|---|
+| Migrations | Ajouter Flyway et passer `ddl-auto` à `validate` (aujourd'hui `update`) |
+| Immuabilité du journal | Appliquer les `GRANT`/`REVOKE` de `V1__create_audit_log.sql` sur PostgreSQL |
+| Révocation des jetons | Liste en mémoire → Redis ou table (perdue au redémarrage, non partagée) |
+| Blocage des comptes | Compteurs en mémoire → persistance |
+| Frontend | Auto-héberger les polices Google, ajouter une CSP |
+| Transport | Forcer HTTPS + HSTS |
+| Kyber | `BouncyCastlePQCProvider` déprécié → ML-KEM du provider principal |
+| CI | Pipeline GitHub Actions (`mvnw test` + scan de dépendances) |
