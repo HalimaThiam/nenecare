@@ -2,6 +2,7 @@ package sn.esp.nenecare.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,6 +10,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
+import sn.esp.nenecare.auth.jwt.JwtAuthFilter;
+import sn.esp.nenecare.common.exception.RestAccessDeniedHandler;
+import sn.esp.nenecare.common.exception.RestAuthenticationEntryPoint;
 
 /**
  * Configuration de securite centrale (RBAC + sessions stateless JWT).
@@ -16,13 +23,21 @@ import org.springframework.security.web.SecurityFilterChain;
  * Fichier PARTAGE : proprietaires Halima (architecte securite) + Elimane (auth).
  * @EnableMethodSecurity active @PreAuthorize sur les controleurs de chaque membre.
  *
- * NOTE : tant que le JwtAuthFilter (Elimane) n'est pas branche, seuls /api/auth,
- * les ressources statiques et /api/audit (demo) sont ouverts. A durcir au Sprint Beta.
+ * Chaine de traitement d'une requete :
+ *   JwtAuthFilter (lit le Bearer, remplit le SecurityContext)
+ *     -> regles d'URL ci-dessous
+ *     -> @PreAuthorize sur la methode du controleur
+ *     -> 401 (RestAuthenticationEntryPoint) ou 403 (RestAccessDeniedHandler) en JSON
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthFilter jwtAuthFilter;
+    private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RestAccessDeniedHandler accessDeniedHandler;
 
     /** Encodeur bcrypt cout 12 (OS-12, exigence donnees medicales). */
     @Bean
@@ -40,16 +55,23 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 // Pages et ressources statiques (frontend Hadja)
-                .requestMatchers("/", "/index.html", "/login.html",
+                .requestMatchers("/", "/index.html", "/login.html", "/accueil.html",
                                  "/css/**", "/js/**", "/favicon.ico").permitAll()
-                // Authentification ouverte (login / logout)
-                .requestMatchers("/api/auth/**").permitAll()
-                // Audit : ouvert temporairement pour la demo Sprint Alpha
-                .requestMatchers("/api/audit/**").permitAll()
+                // Console H2 : presente uniquement quand le profil dev l'active
+                .requestMatchers("/h2-console/**").permitAll()
+                // Connexion / deconnexion : necessairement ouvertes
+                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/logout").permitAll()
+                // Journal d'audit : reserve a l'administrateur (US-16, US-17)
+                .requestMatchers("/api/audit/**").hasRole("ADMIN")
                 // Tout le reste exige une authentification
-                .anyRequest().authenticated());
+                .anyRequest().authenticated())
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(authenticationEntryPoint)
+                .accessDeniedHandler(accessDeniedHandler))
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            // La console H2 s'affiche dans une frame : autorisee sur la meme origine
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
 
-        // TODO Elimane : http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }
