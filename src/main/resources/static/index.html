@@ -3,30 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeneCare - Accueil</title>
+    <title>NeneCare</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <header class="barre">
-        <h1>NeneCare</h1>
-        <button id="btnDeconnexion">Se deconnecter</button>
-    </header>
-
+    <!--
+      Page d'entree : aiguille vers le tableau de bord si une session est
+      ouverte, vers la connexion sinon. Aucun contenu propre, pour eviter
+      d'avoir deux pages d'accueil a maintenir (voir accueil.html).
+    -->
     <main class="contenu">
-        <h2>Tableau de bord</h2>
-        <p>Bienvenue dans NeneCare - Clinique Marose de Ouakam.</p>
-        <p class="info">
-            Page d'accueil de base. Les ecrans par role (dossiers, audit, comptes)
-            sont a developper par Hadja.
-        </p>
+        <h1>NeneCare</h1>
+        <p class="info">Redirection en cours…</p>
+        <noscript>
+            <p>JavaScript est necessaire pour utiliser NeneCare. Acceder
+               directement a <a href="/login.html">la page de connexion</a>.</p>
+        </noscript>
     </main>
 
     <script src="/js/api.js"></script>
     <script>
-        document.getElementById('btnDeconnexion').addEventListener('click', async () => {
-            await NeneCareApi.logout();
-            window.location.href = '/login.html';
-        });
+        window.location.replace(
+            NeneCareApi.estConnecte() ? '/accueil.html' : '/login.html');
     </script>
 </body>
 </html>

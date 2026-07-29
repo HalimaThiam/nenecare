@@ -1,50 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-develop
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeneCare - Connexion</title>
-    <link rel="stylesheet" href="/css/style.css">
-</head>
-<body>
-    <main class="carte-connexion">
-        <h1>NeneCare</h1>
-        <p class="sous-titre">Clinique Marose de Ouakam</p>
-
-        <form id="formConnexion">
-            <label for="username">Identifiant</label>
-            <input type="text" id="username" name="username" required autocomplete="username">
-
-            <label for="motDePasse">Mot de passe</label>
-            <input type="password" id="motDePasse" name="motDePasse" required autocomplete="current-password">
-
-            <button type="submit">Se connecter</button>
-        </form>
-
-        <p id="message" class="message" role="alert"></p>
-    </main>
-
-    <script src="/js/api.js"></script>
-    <script>
-        // Squelette frontend - a completer par Hadja.
-        document.getElementById('formConnexion').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const message = document.getElementById('message');
-            message.textContent = '';
-            try {
-                const reponse = await NeneCareApi.login(
-                    document.getElementById('username').value,
-                    document.getElementById('motDePasse').value
-                );
-                NeneCareApi.setToken(reponse.donnees.token);
-                window.location.href = '/index.html';
-            } catch (err) {
-                message.textContent = err.message || 'Echec de la connexion.';
-            }
-        });
-    </script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NeneCare – Connexion</title>
@@ -322,55 +278,6 @@ develop
     .btn-primary:hover { background: var(--teal-mid); }
     .btn-primary:active { transform: scale(.99); }
 
-    /* Séparateur RBAC */
-    .rbac-note {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      margin: 1.5rem 0 1.25rem;
-    }
-    .rbac-note::before,
-    .rbac-note::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-    .rbac-note span {
-      font-size: .72rem;
-      font-weight: 500;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      color: var(--slate-light);
-      white-space: nowrap;
-    }
-
-    /* Sélecteur de rôle */
-    .role-selector {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: .5rem;
-    }
-    .role-btn {
-      padding: .55rem .3rem;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      background: var(--cream);
-      font-family: 'DM Sans', sans-serif;
-      font-size: .75rem;
-      font-weight: 500;
-      color: var(--slate-light);
-      cursor: pointer;
-      text-align: center;
-      transition: all .2s;
-    }
-    .role-btn:hover,
-    .role-btn.active {
-      border-color: var(--teal-mid);
-      background: rgba(26,138,138,.08);
-      color: var(--teal-deep);
-    }
-
     /* Footer */
     .form-footer {
       margin-top: 2rem;
@@ -396,41 +303,31 @@ develop
 
     <!-- Illustration maternité SVG minimaliste -->
     <svg class="illustration" viewBox="0 0 300 340" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <!-- Corps mère -->
       <ellipse cx="150" cy="200" rx="65" ry="95" fill="white"/>
-      <!-- Ventre -->
       <ellipse cx="150" cy="225" rx="45" ry="50" fill="rgba(255,255,255,0.6)"/>
-      <!-- Bébé -->
       <ellipse cx="150" cy="230" rx="25" ry="30" fill="rgba(255,255,255,0.4)"/>
-      <!-- Tête mère -->
       <circle cx="150" cy="95" r="40" fill="white"/>
-      <!-- Bras -->
       <path d="M85 195 Q60 230 80 260" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
       <path d="M215 195 Q240 230 220 260" stroke="white" stroke-width="12" stroke-linecap="round" fill="none"/>
-      <!-- Croix médicale -->
       <rect x="136" y="155" width="28" height="8" rx="4" fill="rgba(46,196,182,0.7)"/>
       <rect x="147" y="144" width="8" height="28" rx="4" fill="rgba(46,196,182,0.7)"/>
     </svg>
 
     <div class="panel-left-content">
       <h2>Soin, sécurité<br/>et confidentialité.</h2>
-      <p>NeneCare protège les dossiers médicaux maternels et néonatals avec un chiffrement post-quantique et une traçabilité complète.</p>
+      <p>NeneCare protège les dossiers médicaux maternels et néonatals : chiffrement des données, contrôle des accès par rôle et journal d'audit signé.</p>
       <div class="badges">
-        <span class="badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          CRYSTALS-Kyber
-        </span>
         <span class="badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           AES-256-GCM
         </span>
         <span class="badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          RBAC & Audit log
+          HMAC-SHA256
         </span>
         <span class="badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-          HMAC-SHA256
+          RBAC &amp; Audit log
         </span>
       </div>
     </div>
@@ -459,9 +356,9 @@ develop
     </div>
 
     <!-- Alerte erreur -->
-    <div class="alert-error" id="alertError">
+    <div class="alert-error" id="alertError" role="alert">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      <span id="alertMsg">Identifiants incorrects. Veuillez réessayer.</span>
+      <span id="alertMsg"></span>
     </div>
 
     <!-- Formulaire -->
@@ -496,26 +393,16 @@ develop
         </div>
       </div>
 
-      <div class="field-utils">
-        <a href="#">Mot de passe oublié ?</a>
-      </div>
+      <!--
+        Pas de sélecteur de rôle ici : le rôle est déterminé par le serveur à
+        partir du compte, jamais choisi par la personne qui se connecte.
+      -->
 
-      <!-- Rôle RBAC -->
-      <div class="rbac-note"><span>Sélectionnez votre rôle</span></div>
-      <div class="role-selector" id="roleSelector">
-        <button type="button" class="role-btn active" data-role="MEDECIN">Médecin</button>
-        <button type="button" class="role-btn" data-role="SAGE_FEMME">Sage-femme</button>
-        <button type="button" class="role-btn" data-role="ADMIN">Administrateur</button>
-      </div>
-      <input type="hidden" id="roleInput" name="role" value="MEDECIN" />
-
-      <!-- Submit -->
-      <br/>
       <button type="submit" class="btn-primary" id="submitBtn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
         </svg>
-        Se connecter
+        <span id="submitLabel">Se connecter</span>
       </button>
     </form>
 
@@ -526,51 +413,72 @@ develop
   </div>
 </div>
 
+<script src="/js/api.js"></script>
 <script>
-  // Sélecteur de rôle
-  document.querySelectorAll('.role-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('roleInput').value = btn.dataset.role;
-    });
-  });
+  const form        = document.getElementById('loginForm');
+  const btn         = document.getElementById('submitBtn');
+  const btnLabel    = document.getElementById('submitLabel');
+  const alerte      = document.getElementById('alertError');
+  const alerteMsg   = document.getElementById('alertMsg');
 
-  // Toggle mot de passe
+  function afficherErreur(message) {
+    alerteMsg.textContent = message;
+    alerte.classList.add('show');
+  }
+
+  function masquerErreur() {
+    alerte.classList.remove('show');
+  }
+
+  // Session déjà ouverte : inutile de redemander les identifiants.
+  if (NeneCareApi.estConnecte()) {
+    window.location.replace('/accueil.html');
+  }
+
+  // Retour depuis une page protégée après expiration du jeton (US-02).
+  if (new URLSearchParams(window.location.search).has('expire')) {
+    afficherErreur('Votre session a expiré. Merci de vous reconnecter.');
+  }
+
+  // Affichage / masquage du mot de passe
   document.getElementById('togglePw').addEventListener('click', () => {
-    const pw = document.getElementById('password');
-    const icon = document.getElementById('eyeIcon');
-    if (pw.type === 'password') {
-      pw.type = 'text';
-      icon.innerHTML = `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`;
+    const champ = document.getElementById('password');
+    const icone = document.getElementById('eyeIcon');
+    if (champ.type === 'password') {
+      champ.type = 'text';
+      icone.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>';
     } else {
-      pw.type = 'password';
-      icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+      champ.type = 'password';
+      icone.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
     }
   });
 
-  // Soumission (à connecter au backend Spring Security)
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  // Soumission : appel réel de POST /api/auth/login
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const alert = document.getElementById('alertError');
-    alert.classList.remove('show');
-    btn.textContent = 'Connexion en cours…';
-    btn.disabled = true;
+    masquerErreur();
 
-    // TODO : remplacer par l'appel fetch vers /api/auth/login (JWT)
-    // Simulation d'erreur de démonstration
-    setTimeout(() => {
-      // En production : rediriger vers accueil.html si 200, afficher alerte si 401
+    const username   = document.getElementById('username').value.trim();
+    const motDePasse = document.getElementById('password').value;
+
+    if (!username || !motDePasse) {
+      afficherErreur('Renseignez votre identifiant et votre mot de passe.');
+      return;
+    }
+
+    btn.disabled = true;
+    btnLabel.textContent = 'Connexion en cours…';
+
+    try {
+      await NeneCareApi.login(username, motDePasse);
+      window.location.replace('/accueil.html');
+    } catch (err) {
+      // Le serveur renvoie déjà un message non technique (US-22).
+      afficherErreur(err.message || 'Échec de la connexion.');
       btn.disabled = false;
-      btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
-        </svg>
-        Se connecter`;
-    }, 1200);
+      btnLabel.textContent = 'Se connecter';
+    }
   });
 </script>
-  feature/audit
 </body>
 </html>

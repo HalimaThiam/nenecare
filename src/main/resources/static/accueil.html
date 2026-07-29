@@ -102,6 +102,26 @@
       text-align: left;
     }
     .nav-item:hover { background: rgba(255,255,255,.08); color: var(--white); }
+
+    /* Module pas encore livré : l'onglet reste visible (il annonce la feuille
+       de route) mais ne doit pas se faire passer pour un lien fonctionnel. */
+    .nav-item.a-venir {
+      color: rgba(255,255,255,.35);
+      cursor: not-allowed;
+    }
+    .nav-item.a-venir:hover { background: none; color: rgba(255,255,255,.35); }
+    .nav-item.a-venir .puce-a-venir {
+      margin-left: auto;
+      font-size: .6rem;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.4);
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 100px;
+      padding: .1rem .4rem;
+      white-space: nowrap;
+    }
     .nav-item.active {
       background: rgba(46,196,182,.2);
       color: var(--teal-light);
@@ -447,39 +467,52 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
       Tableau de bord
     </a>
-    <a class="nav-item" href="#">
+    <!-- Ces trois modules n'ont pas encore de backend (aucune entité Patiente
+         ni DossierNeonatal, DossierMedicalService vide) : ils sont annoncés,
+         pas proposés. Ils deviendront cliquables avec les US-05 à US-13. -->
+    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       Patientes
+      <span class="puce-a-venir">à venir</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Dossiers médicaux
+      <span class="puce-a-venir">à venir</span>
     </a>
-    <a class="nav-item" href="#">
+    <a class="nav-item a-venir" href="#" aria-disabled="true" title="Module en cours de développement (US-05 à US-13)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Dossiers néonatals
+      <span class="puce-a-venir">à venir</span>
     </a>
 
-    <div class="nav-section-label" style="margin-top:1.25rem;">Administration</div>
+    <!-- Section réservée à l'administrateur : masquée pour les autres rôles.
+         Masquage de confort uniquement — l'API refuse de toute façon (403). -->
+    <div class="nav-section-label" style="margin-top:1.25rem;" data-role="ADMIN">Administration</div>
 
-    <a class="nav-item" href="#">
+    <!-- Fonctionnel : l'API d'audit existe et répond. -->
+    <a class="nav-item" href="#" id="navJournalAudit" data-role="ADMIN">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
       Journal d'audit
     </a>
-    <a class="nav-item" href="#">
+    <!-- US-18/19 non implémentées : UserService ne contient que des TODO. -->
+    <a class="nav-item a-venir" href="#" aria-disabled="true" data-role="ADMIN"
+       title="Module en cours de développement (US-18, US-19)">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
       Gestion des accès
+      <span class="puce-a-venir">à venir</span>
     </a>
 
     <div class="nav-spacer"></div>
 
     <div class="sidebar-user">
-      <div class="user-avatar" id="avatarInitials">HD</div>
+      <!-- Renseignés par le script à partir de la session ouverte. -->
+      <div class="user-avatar" id="avatarInitials"></div>
       <div class="user-info">
-        <div class="user-name" id="userName">Dr Hadja Diallo</div>
-        <div class="user-role" id="userRole">SAGE_FEMME</div>
+        <div class="user-name" id="userName">…</div>
+        <div class="user-role" id="userRole"></div>
       </div>
-      <button class="logout-btn" title="Déconnexion" onclick="window.location.href='login.html'">
+      <button class="logout-btn" id="btnDeconnexion" title="Déconnexion">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
@@ -497,23 +530,24 @@
         <p id="dateNow">Chargement de la date…</p>
       </div>
       <div class="header-actions">
-        <button class="btn btn-outline">
+        <!-- Boutons inactifs tant que le module Dossiers (Amadou) n'est pas livré. -->
+        <button class="btn btn-outline" disabled title="Module dossiers à venir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           Rechercher
         </button>
-        <button class="btn btn-primary">
+        <button class="btn btn-primary" disabled title="Module dossiers à venir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Nouveau dossier
         </button>
       </div>
     </div>
 
-    <!-- Alerte sécurité (exemple) -->
-    <div class="security-alert">
+    <!-- Alerte sécurité : affichée seulement si le journal contient des échecs -->
+    <div class="security-alert" id="alerteSecurite" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
       <div>
-        <div class="security-alert-title">2 tentatives de connexion échouées détectées</div>
-        <div class="security-alert-desc">Utilisateur : user_elim_ka · IP : 192.168.1.47 · Il y a 8 minutes — Vérifiez le journal d'audit pour plus de détails.</div>
+        <div class="security-alert-title" id="alerteSecuriteTitre"></div>
+        <div class="security-alert-desc" id="alerteSecuriteDetail"></div>
       </div>
     </div>
 
@@ -526,8 +560,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
           </div>
         </div>
-        <div class="kpi-value">47</div>
-        <div class="kpi-sub"><span class="kpi-trend up">↑ +3</span> ce mois</div>
+        <div class="kpi-value" id="kpiPatientes">—</div>
+        <div class="kpi-sub">Module à venir (Amadou)</div>
       </div>
 
       <div class="kpi-card">
@@ -537,8 +571,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
           </div>
         </div>
-        <div class="kpi-value">128</div>
-        <div class="kpi-sub"><span class="kpi-trend up">↑ +12</span> cette semaine</div>
+        <div class="kpi-value" id="kpiDossiers">—</div>
+        <div class="kpi-sub">Module à venir (Amadou)</div>
       </div>
 
       <div class="kpi-card">
@@ -548,8 +582,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           </div>
         </div>
-        <div class="kpi-value">2</div>
-        <div class="kpi-sub"><span class="kpi-trend warn">⚠ à investiguer</span></div>
+        <div class="kpi-value" id="kpiEchecs">—</div>
+        <div class="kpi-sub" id="kpiEchecsSub">Journal d'audit</div>
       </div>
 
       <div class="kpi-card">
@@ -559,8 +593,8 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
         </div>
-        <div class="kpi-value">100%</div>
-        <div class="kpi-sub"><span class="kpi-trend up">✓ Aucune altération</span></div>
+        <div class="kpi-value" id="kpiIntegrite">—</div>
+        <div class="kpi-sub" id="kpiIntegriteSub">Vérification HMAC</div>
       </div>
     </div>
 
@@ -571,129 +605,35 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Dossiers récents</span>
-          <a class="card-action" href="#">Voir tout</a>
         </div>
         <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Patiente</th>
-                <th>Type</th>
-                <th>Modifié</th>
-                <th>Statut</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0041</code></td>
-                <td>Fatou Ndiaye</td>
-                <td>Médical</td>
-                <td>Aujourd'hui, 11h22</td>
-                <td><span class="badge-status active">Actif</span></td>
-                <td><a class="action-link" href="#">Ouvrir →</a></td>
-              </tr>
-              <tr>
-                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DN-0018</code></td>
-                <td>Aminata Sow</td>
-                <td>Néonatal</td>
-                <td>Aujourd'hui, 09h54</td>
-                <td><span class="badge-status active">Actif</span></td>
-                <td><a class="action-link" href="#">Ouvrir →</a></td>
-              </tr>
-              <tr>
-                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0039</code></td>
-                <td>Rokhaya Ba</td>
-                <td>Médical</td>
-                <td>Hier, 16h10</td>
-                <td><span class="badge-status pending">En cours</span></td>
-                <td><a class="action-link" href="#">Ouvrir →</a></td>
-              </tr>
-              <tr>
-                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DM-0035</code></td>
-                <td>Mariame Diallo</td>
-                <td>Médical</td>
-                <td>31 mai, 14h33</td>
-                <td><span class="badge-status closed">Clôturé</span></td>
-                <td><a class="action-link" href="#">Ouvrir →</a></td>
-              </tr>
-              <tr>
-                <td><code style="font-size:.75rem;color:var(--teal-mid)">#DN-0015</code></td>
-                <td>Ndeye Fall</td>
-                <td>Néonatal</td>
-                <td>30 mai, 10h05</td>
-                <td><span class="badge-status active">Actif</span></td>
-                <td><a class="action-link" href="#">Ouvrir →</a></td>
-              </tr>
-            </tbody>
-          </table>
+          <!--
+            Aucune donnée factice ici : le module Dossiers (entités Patiente /
+            DossierMedical / DossierNeonatal, US-05 à US-13) n'est pas encore
+            livré. Ce bloc sera branché sur GET /api/dossiers dès sa mise à
+            disposition par Amadou.
+          -->
+          <div style="padding:2rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                 style="width:32px;height:32px;opacity:.4;margin-bottom:.75rem;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            </svg>
+            <div>Module <strong>Dossiers médicaux</strong> en cours de développement.</div>
+            <div style="margin-top:.35rem;font-size:.78rem;">US-05 à US-13 · chiffrement AES-256-GCM avant enregistrement</div>
+          </div>
         </div>
       </div>
 
-      <!-- Journal d'audit -->
+      <!-- Journal d'audit : alimenté par GET /api/audit/logs (ADMIN uniquement) -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Journal d'audit récent</span>
-          <a class="card-action" href="#">Voir tout</a>
+          <a class="card-action" href="#" id="lienRafraichirAudit">Rafraîchir</a>
         </div>
-        <div class="audit-list">
-
-          <div class="audit-item">
-            <div class="audit-dot warn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
-            </div>
-            <div class="audit-meta">
-              <div class="audit-action">LOGIN_FAILURE × 2</div>
-              <div class="audit-detail">user_elim_ka · 192.168.1.47</div>
-            </div>
-            <div class="audit-time">Il y a 8 min</div>
+        <div class="audit-list" id="listeAudit">
+          <div style="padding:1.5rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;">
+            Chargement…
           </div>
-
-          <div class="audit-item">
-            <div class="audit-dot read">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </div>
-            <div class="audit-meta">
-              <div class="audit-action">DOSSIER_READ</div>
-              <div class="audit-detail">Dr H. Diallo · #DM-0041</div>
-            </div>
-            <div class="audit-time">11h22</div>
-          </div>
-
-          <div class="audit-item">
-            <div class="audit-dot write">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <div class="audit-meta">
-              <div class="audit-action">DOSSIER_CREATE</div>
-              <div class="audit-detail">Dr H. Diallo · #DM-0041</div>
-            </div>
-            <div class="audit-time">10h44</div>
-          </div>
-
-          <div class="audit-item">
-            <div class="audit-dot login">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/></svg>
-            </div>
-            <div class="audit-meta">
-              <div class="audit-action">LOGIN_SUCCESS</div>
-              <div class="audit-detail">Dr H. Diallo · 192.168.1.21</div>
-            </div>
-            <div class="audit-time">08h30</div>
-          </div>
-
-          <div class="audit-item">
-            <div class="audit-dot read">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-            </div>
-            <div class="audit-meta">
-              <div class="audit-action">DOSSIER_READ</div>
-              <div class="audit-detail">Dr H. Diallo · #DN-0018</div>
-            </div>
-            <div class="audit-time">Hier 16h55</div>
-          </div>
-
         </div>
       </div>
 
@@ -701,19 +641,207 @@
   </main>
 </div>
 
+<script src="/js/api.js"></script>
 <script>
-  // Date dynamique
-  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-  document.getElementById('dateNow').textContent =
-    new Date().toLocaleDateString('fr-FR', opts);
+  // ==========================================================================
+  // Tableau de bord NeneCare - Propriétaire : Hadja (frontend)
+  //
+  // Rappel : tout ce qui est fait ici est du confort d'affichage. Le contrôle
+  // d'accès réel est côté serveur (JwtAuthFilter + @PreAuthorize) ; masquer un
+  // bouton n'a jamais protégé une donnée.
+  // ==========================================================================
 
-  // Infos utilisateur depuis sessionStorage (à alimenter après auth JWT)
-  const storedName = sessionStorage.getItem('nc_user_name') || 'Dr Hadja Diallo';
-  const storedRole = sessionStorage.getItem('nc_user_role') || 'SAGE_FEMME';
-  document.getElementById('userName').textContent  = storedName;
-  document.getElementById('userRole').textContent  = storedRole;
+  // Aucune session ouverte -> retour au login avant même d'afficher la page.
+  if (!NeneCareApi.exigerConnexion()) {
+    throw new Error('Redirection vers la page de connexion');
+  }
+
+  const utilisateur = NeneCareApi.getUtilisateur();
+  const estAdmin    = NeneCareApi.aLeRole('ADMIN');
+
+  // ── Date du jour ──────────────────────────────────────────────────────────
+  document.getElementById('dateNow').textContent =
+    new Date().toLocaleDateString('fr-FR',
+      { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // ── Identité de la personne connectée ─────────────────────────────────────
+  const nomAffiche = utilisateur.nomComplet || utilisateur.username;
+  document.getElementById('userName').textContent = nomAffiche;
+  document.getElementById('userRole').textContent = utilisateur.role;
   document.getElementById('avatarInitials').textContent =
-    storedName.split(' ').filter(w => /^[A-ZÀ-Ÿ]/.test(w)).slice(0,2).map(w=>w[0]).join('');
+    nomAffiche.split(/\s+/).filter(Boolean).slice(0, 2)
+              .map(mot => mot[0].toUpperCase()).join('');
+
+  // ── Affichage selon le rôle ───────────────────────────────────────────────
+  document.querySelectorAll('[data-role]').forEach(element => {
+    if (element.dataset.role !== utilisateur.role) {
+      element.style.display = 'none';
+    }
+  });
+
+  // ── Déconnexion (US-03 : le jeton est révoqué côté serveur) ───────────────
+  document.getElementById('btnDeconnexion').addEventListener('click', async () => {
+    await NeneCareApi.logout();
+    window.location.replace('/login.html');
+  });
+
+  // ── Journal d'audit ───────────────────────────────────────────────────────
+
+  const ICONES = {
+    LOGIN_SUCCESS: { classe: 'login', svg: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/>' },
+    LOGOUT:        { classe: 'login', svg: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/>' },
+    LOGIN_FAILURE: { classe: 'warn',  svg: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>' },
+    LOGIN_BLOCKED: { classe: 'warn',  svg: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>' },
+    DOSSIER_READ:  { classe: 'read',  svg: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
+    DEFAUT:        { classe: 'write', svg: '<polyline points="20 6 9 17 4 12"/>' }
+  };
+
+  // Le contenu vient de la base : on passe par textContent, jamais par
+  // innerHTML, pour qu'un champ piégé ne puisse pas injecter de script.
+  function creerElement(balise, classe, texte) {
+    const element = document.createElement(balise);
+    if (classe) element.className = classe;
+    if (texte !== undefined) element.textContent = texte;
+    return element;
+  }
+
+  function formaterHeure(horodatage) {
+    const date = new Date(horodatage);
+    if (isNaN(date)) return '';
+    const aujourdhui = new Date().toDateString() === date.toDateString();
+    return aujourdhui
+      ? date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  }
+
+  function ligneAudit(entree) {
+    const icone = ICONES[entree.action] || ICONES.DEFAUT;
+
+    const item = creerElement('div', 'audit-item');
+
+    const pastille = creerElement('div', 'audit-dot ' + icone.classe);
+    pastille.innerHTML =
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">'
+      + icone.svg + '</svg>';
+
+    const meta = creerElement('div', 'audit-meta');
+    meta.appendChild(creerElement('div', 'audit-action', entree.action));
+    meta.appendChild(creerElement('div', 'audit-detail',
+      [entree.utilisateur, entree.adresseIp, entree.ressource]
+        .filter(Boolean).join(' · ')));
+
+    item.appendChild(pastille);
+    item.appendChild(meta);
+    item.appendChild(creerElement('div', 'audit-time', formaterHeure(entree.timestamp)));
+    return item;
+  }
+
+  function messageInfo(texte) {
+    const bloc = creerElement('div', null, texte);
+    bloc.style.cssText =
+      'padding:1.5rem 1.25rem;text-align:center;color:var(--slate-light);font-size:.85rem;';
+    return bloc;
+  }
+
+  // Le tableau de bord n'affiche qu'un apercu ; la vue "Journal d'audit"
+  // (menu Administration) affiche l'integralite du journal.
+  const APERCU = 8;
+
+  async function chargerAudit(limite = APERCU) {
+    const liste = document.getElementById('listeAudit');
+    liste.replaceChildren();
+
+    // Le journal est réservé à l'administrateur : inutile d'appeler l'API
+    // pour les autres rôles, le serveur répondrait 403.
+    if (!estAdmin) {
+      liste.appendChild(messageInfo(
+        "Le journal d'audit est réservé à l'administrateur."));
+      return;
+    }
+
+    try {
+      const entrees = await NeneCareApi.get('/api/audit/logs');
+
+      if (!entrees || entrees.length === 0) {
+        liste.appendChild(messageInfo('Aucun évènement enregistré pour le moment.'));
+      } else {
+        entrees.slice(0, limite).forEach(entree => liste.appendChild(ligneAudit(entree)));
+        if (entrees.length > limite) {
+          liste.appendChild(messageInfo(
+            (entrees.length - limite) + ' évènement(s) plus ancien(s) — '
+            + "voir « Journal d'audit » dans le menu."));
+        }
+      }
+
+      majKpis(entrees || []);
+
+    } catch (err) {
+      liste.appendChild(messageInfo('Journal indisponible : ' + err.message));
+    }
+  }
+
+  // ── KPIs calculés à partir du journal ─────────────────────────────────────
+  async function majKpis(entrees) {
+    const echecs = entrees.filter(e => e.succes === false);
+    document.getElementById('kpiEchecs').textContent = echecs.length;
+    document.getElementById('kpiEchecsSub').textContent =
+      echecs.length === 0 ? 'Aucun échec enregistré' : 'À vérifier dans le journal';
+
+    // Alerte visible seulement s'il y a effectivement des échecs récents.
+    if (echecs.length > 0) {
+      const dernier = echecs[0];
+      document.getElementById('alerteSecuriteTitre').textContent =
+        echecs.length + ' tentative(s) échouée(s) enregistrée(s)';
+      document.getElementById('alerteSecuriteDetail').textContent =
+        'Dernière : ' + dernier.utilisateur
+        + (dernier.adresseIp ? ' · IP : ' + dernier.adresseIp : '')
+        + ' · ' + new Date(dernier.timestamp).toLocaleString('fr-FR');
+      document.getElementById('alerteSecurite').style.display = 'flex';
+    }
+
+    // Vérification HMAC de l'ensemble du journal (OS-08).
+    try {
+      const integrite = await NeneCareApi.get('/api/audit/integrite');
+      const total = integrite.entrees;
+      const saines = total - integrite.alterees;
+      document.getElementById('kpiIntegrite').textContent =
+        total === 0 ? '—' : Math.round((saines / total) * 100) + '%';
+      document.getElementById('kpiIntegriteSub').textContent =
+        integrite.alterees === 0
+          ? '✓ Aucune altération'
+          : '⚠ ' + integrite.alterees + ' entrée(s) altérée(s)';
+    } catch (err) {
+      document.getElementById('kpiIntegriteSub').textContent = 'Vérification indisponible';
+    }
+  }
+
+  document.getElementById('lienRafraichirAudit').addEventListener('click', (e) => {
+    e.preventDefault();
+    chargerAudit();
+  });
+
+  // ── Navigation ────────────────────────────────────────────────────────────
+
+  // Les onglets sans backend ne doivent rien faire du tout : un clic qui ne
+  // produit aucun effet laisse croire que la page est cassée.
+  document.querySelectorAll('.nav-item.a-venir').forEach(onglet => {
+    onglet.addEventListener('click', e => e.preventDefault());
+  });
+
+  // Journal d'audit : affiche l'intégralité du journal (l'API existe).
+  const navJournal = document.getElementById('navJournalAudit');
+  if (navJournal) {
+    navJournal.addEventListener('click', async (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.nav-item').forEach(o => o.classList.remove('active'));
+      navJournal.classList.add('active');
+      await chargerAudit(Infinity);
+      document.getElementById('listeAudit')
+              .scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }
+
+  chargerAudit();
 </script>
 </body>
 </html>
